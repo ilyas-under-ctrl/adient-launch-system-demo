@@ -429,8 +429,8 @@ const state = {
   ],
   projects: [
     { id: 'PRJ-001', name: 'BMW Group Series 7', client: 'BMW Group', pos: 3, status: 'In Progress', engineer: 'Ahmed Rami', manager: 'Karim Benali' },
-    { id: 'PRJ-002', name: 'Volkswagen Tiguan', client: 'Volkswagen AG', pos: 2, status: 'Packaged', engineer: 'Ahmed Rami', manager: 'Sofia Marini' },
-    { id: 'PRJ-003', name: 'Stellantis Peugeot 308', client: 'Stellantis', pos: 1, status: 'Unplanned', engineer: 'Farid Korichi', manager: 'Karim Benali' }
+    { id: 'PRJ-002', name: 'Volkswagen Tiguan', client: 'Volkswagen AG', pos: 3, status: 'In Progress', engineer: 'Ahmed Rami', manager: 'Sofia Marini' },
+    { id: 'PRJ-003', name: 'Stellantis Peugeot 308', client: 'Stellantis', pos: 2, status: 'In Progress', engineer: 'Farid Korichi', manager: 'Karim Benali' }
   ],
   pos: [
     { id: 'PO-2024-018', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-001', stockCode: 'STK-BMW-018', qty: 200, week: 27, status: 'In Progress', price: 12000, hasPV: true, launchedQty: 50, parts: [
@@ -446,7 +446,21 @@ const state = {
       ]},
     { id: 'PO-2024-021', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-001', stockCode: 'STK-BMW-021', qty: 75, week: 27, status: 'Delivered', price: 4500, hasPV: true, launchedQty: 75, parts: [
         { fgpn: 'BMW-S7-001', desc: 'Front Left Seat', qty: 75, launched: 75 }
-    ]}
+    ]},
+    { id: 'PO-2024-022', project: 'PRJ-002', client: 'Volkswagen AG', fgpn: 'VW-TIG-004', stockCode: 'STK-VW-022', qty: 160, week: 31, status: 'In Progress', price: 16800, hasPV: true, launchedQty: 60, parts: [
+        { fgpn: 'VW-TIG-004', desc: 'Front Backrest Carrier', qty: 90, launched: 40 },
+        { fgpn: 'VW-TIG-004-R', desc: 'Rear Backrest Carrier', qty: 70, launched: 20 }
+      ]},
+    { id: 'PO-2024-023', project: 'PRJ-002', client: 'Volkswagen AG', fgpn: 'VW-TIG-005', stockCode: 'STK-VW-023', qty: 110, week: 33, status: 'Unplanned', price: 10450, hasPV: false, launchedQty: 0, parts: [
+        { fgpn: 'VW-TIG-005', desc: 'Rear Armrest Assembly', qty: 110, launched: 0 }
+      ]},
+    { id: 'PO-2024-024', project: 'PRJ-003', client: 'Stellantis', fgpn: 'PEU-308-010', stockCode: 'STK-PSA-024', qty: 210, week: 35, status: 'Unplanned', price: 23100, hasPV: false, launchedQty: 0, parts: [
+        { fgpn: 'PEU-308-010', desc: 'Front Seat Cushion', qty: 120, launched: 0 },
+        { fgpn: 'PEU-308-011', desc: 'Rear Seat Cushion', qty: 90, launched: 0 }
+      ]},
+    { id: 'PO-2024-025', project: 'PRJ-003', client: 'Stellantis', fgpn: 'PEU-308-012', stockCode: 'STK-PSA-025', qty: 140, week: 34, status: 'In Progress', price: 18200, hasPV: true, launchedQty: 45, parts: [
+        { fgpn: 'PEU-308-012', desc: 'Headrest Support Assembly', qty: 140, launched: 45 }
+      ]}
   ],
   poVersions: {
     'PO-2024-018': [
@@ -461,6 +475,19 @@ const state = {
     ],
     'PO-2024-021': [
       { version: 1, filename: 'PO-2024-021_v1.pdf', uploadedAt: '20/06 08:45', uploadedBy: 'Ahmed Rami', qty: 75, week: 27, price: 4500, status: 'Active - immutable' }
+    ],
+    'PO-2024-022': [
+      { version: 1, filename: 'PO-2024-022_v1.pdf', uploadedAt: '05/07 13:10', uploadedBy: 'Ahmed Rami', qty: 150, week: 31, price: 15750, status: 'Stored - immutable' },
+      { version: 2, filename: 'PO-2024-022_v2.pdf', uploadedAt: '09/07 09:05', uploadedBy: 'Ahmed Rami', qty: 160, week: 31, price: 16800, status: 'Active - immutable' }
+    ],
+    'PO-2024-023': [
+      { version: 1, filename: 'PO-2024-023_v1.pdf', uploadedAt: '11/07 15:22', uploadedBy: 'Ahmed Rami', qty: 110, week: 33, price: 10450, status: 'Active - immutable' }
+    ],
+    'PO-2024-024': [
+      { version: 1, filename: 'PO-2024-024_v1.pdf', uploadedAt: '12/07 10:18', uploadedBy: 'Farid Korichi', qty: 210, week: 35, price: 23100, status: 'Active - immutable' }
+    ],
+    'PO-2024-025': [
+      { version: 1, filename: 'PO-2024-025_v1.pdf', uploadedAt: '10/07 08:40', uploadedBy: 'Farid Korichi', qty: 140, week: 34, price: 18200, status: 'Active - immutable' }
     ]
   },
   stock: [
@@ -468,7 +495,12 @@ const state = {
     { id: 'THR-11', desc: 'Black Sewing Thread', practical: 8, transit: 20, threshold: 30, wip: 5, reserved: 4 },
     { id: 'PLX-02', desc: 'Flexible Plastic', practical: 41, transit: 0, threshold: 50, wip: 10, reserved: 15 },
     { id: 'ROL-07', desc: 'Foam Roll', practical: 312, transit: 0, threshold: 100, wip: 80, reserved: 120 },
-    { id: 'FBR-01', desc: 'Fiberglass', practical: 180, transit: 50, threshold: 80, wip: 0, reserved: 60 }
+    { id: 'FBR-01', desc: 'Fiberglass', practical: 180, transit: 50, threshold: 80, wip: 0, reserved: 60 },
+    { id: 'STL-08', desc: 'Stamped Steel Bracket', practical: 420, transit: 100, threshold: 160, wip: 45, reserved: 130 },
+    { id: 'CLP-21', desc: 'Retaining Clip', practical: 760, transit: 0, threshold: 240, wip: 100, reserved: 280 },
+    { id: 'FOM-12', desc: 'Moulded Comfort Foam', practical: 190, transit: 80, threshold: 120, wip: 35, reserved: 70 },
+    { id: 'TXT-09', desc: 'Grey Seat Textile', practical: 95, transit: 120, threshold: 100, wip: 20, reserved: 55 },
+    { id: 'WIR-03', desc: 'Headrest Guide Wire', practical: 330, transit: 0, threshold: 140, wip: 60, reserved: 110 }
   ],
   receptions: [
     { id: 'REC-001', matId: 'ROL-07', desc: 'Foam Roll', qty: 50, dt: '08/07 10:30', operator: 'Nadia Wafa', locked: false },
@@ -486,6 +518,8 @@ const state = {
     { id: 'LAU-2024-05', project: 'PRJ-001', poIds: ['PO-2024-019'], launchItems: [{poId:'PO-2024-019',fgpn:'BMW-S7-002',desc:'Leather Headrest',qty:120}], code: 'A3-9G1', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:180},{id:'ROL-07',desc:'Foam Roll',qty:96}], status: 'validated', productionStatus:'Done', packagingStatus:'In Progress', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_05.pdf', uploader: 'Nadia Wafa', timestamp: '07/07 14:00', requiredDeliveryLabel:'07/07/2026 16:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-05.pdf', used:true },
     { id: 'LAU-2024-07', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:50}], code: null, matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:100},{id:'THR-11',desc:'Black Sewing Thread',qty:30}], status: 'planned', productionStatus:'Planned', packagingStatus:'Waiting Production', meetingDecision:'pending', meetingMinutesFile:null, uploader: null, timestamp: '14/07 09:00', receiver: null },
     { id: 'LAU-2024-08', project: 'PRJ-002', poIds: ['PO-2024-020'], launchItems: [{poId:'PO-2024-020',fgpn:'VW-TIG-003',desc:'Rear Backrest Assembly',qty:70},{poId:'PO-2024-020',fgpn:'VW-TIG-003-L',desc:'Rear Lumbar Support',qty:30}], code: 'Q5-8TR', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:194},{id:'FBR-01',desc:'Fiberglass',qty:114}], status: 'validated', productionStatus:'Done', packagingStatus:'Packaged', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_08.pdf', uploader: 'Nadia Wafa', timestamp: '18/07 10:00', requiredDeliveryLabel:'18/07/2026 12:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-08.pdf', used:true },
+    { id: 'LAU-2024-09', project: 'PRJ-002', poIds: ['PO-2024-022'], launchItems: [{poId:'PO-2024-022',fgpn:'VW-TIG-004',desc:'Front Backrest Carrier',qty:40},{poId:'PO-2024-022',fgpn:'VW-TIG-004-R',desc:'Rear Backrest Carrier',qty:20}], code: 'M8-4VX', matList: [{id:'STL-08',desc:'Stamped Steel Bracket',qty:68},{id:'CLP-21',desc:'Retaining Clip',qty:110}], status:'signed_pending', productionStatus:'In Progress', packagingStatus:'Waiting Production', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_09.pdf', uploader:'Nadia Wafa', timestamp:'15/07 08:50', requiredDeliveryLabel:'15/07/2026 11:00', receiver:'Sigma Moussa', expiresLabel:'17/07/2026 08:50', used:false },
+    { id: 'LAU-2024-10', project: 'PRJ-003', poIds: ['PO-2024-025'], launchItems: [{poId:'PO-2024-025',fgpn:'PEU-308-012',desc:'Headrest Support Assembly',qty:45}], code:'P2-7LK', matList:[{id:'WIR-03',desc:'Headrest Guide Wire',qty:90},{id:'PLX-02',desc:'Flexible Plastic',qty:18}], status:'signed_pending', productionStatus:'In Progress', packagingStatus:'Waiting Production', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_10.pdf', uploader:'Nadia Wafa', timestamp:'16/07 09:15', requiredDeliveryLabel:'16/07/2026 13:00', receiver:'Rachid Bel', expiresLabel:'18/07/2026 09:15', used:false },
     { id: 'LAU-2024-04', project: 'PRJ-001', poIds: ['PO-2024-021'], launchItems: [{poId:'PO-2024-021',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:75}], code: 'D4-6KM', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:150},{id:'THR-11',desc:'Black Sewing Thread',qty:45}], status: 'validated', productionStatus:'Done', packagingStatus:'Packaged', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_04.pdf', uploader: 'Nadia Wafa', timestamp: '01/07 09:20', requiredDeliveryLabel:'01/07/2026 12:00', receiver: 'Sigma Moussa', signedFile:'reception_LAU-2024-04.pdf', used:true }
   ],
   refJit: [
@@ -536,7 +570,11 @@ const state = {
   materialPrices: [
     { id: 'PRICE-001', partNumber: 'BMW-S7-001', fgpn: 'BMW-S7-001', desc: 'Front Left Seat', trimStyle: 'Leather Black', project: 'PRJ-001', currentPrice: 60.0, effectiveDate: '2026-06-01' },
     { id: 'PRICE-002', partNumber: 'BMW-S7-002', fgpn: 'BMW-S7-002', desc: 'Leather Headrest', trimStyle: 'Leather Black', project: 'PRJ-001', currentPrice: 123.33, effectiveDate: '2026-07-01' },
-    { id: 'PRICE-003', partNumber: 'VW-TIG-003', fgpn: 'VW-TIG-003', desc: 'Rear Backrest Assembly', trimStyle: 'Fabric Grey', project: 'PRJ-002', currentPrice: 92.0, effectiveDate: '2026-06-15' }
+    { id: 'PRICE-003', partNumber: 'VW-TIG-003', fgpn: 'VW-TIG-003', desc: 'Rear Backrest Assembly', trimStyle: 'Fabric Grey', project: 'PRJ-002', currentPrice: 92.0, effectiveDate: '2026-06-15' },
+    { id: 'PRICE-004', partNumber: 'VW-TIG-004', fgpn: 'VW-TIG-004', desc: 'Front Backrest Carrier', trimStyle: 'Standard', project: 'PRJ-002', currentPrice: 105.0, effectiveDate: '2026-07-01' },
+    { id: 'PRICE-005', partNumber: 'VW-TIG-005', fgpn: 'VW-TIG-005', desc: 'Rear Armrest Assembly', trimStyle: 'Fabric Grey', project: 'PRJ-002', currentPrice: 95.0, effectiveDate: '2026-07-10' },
+    { id: 'PRICE-006', partNumber: 'PEU-308-010', fgpn: 'PEU-308-010', desc: 'Front Seat Cushion', trimStyle: 'Textile Grey', project: 'PRJ-003', currentPrice: 110.0, effectiveDate: '2026-07-08' },
+    { id: 'PRICE-007', partNumber: 'PEU-308-012', fgpn: 'PEU-308-012', desc: 'Headrest Support Assembly', trimStyle: 'Standard', project: 'PRJ-003', currentPrice: 130.0, effectiveDate: '2026-07-08' }
   ],
   priceHistory: [
     { id: 'PRICE-H-001', priceId: 'PRICE-002', fgpn: 'BMW-S7-002', project: 'PRJ-001', prev: 120.0, next: 123.33, effectiveDate: '2026-07-01', dt: '01/07 10:00', user: 'Ahmed Rami' }
@@ -591,7 +629,17 @@ const state = {
     { projectId:'PRJ-002', versionId:'BOM-002-003-V2', fgpn:'VW-TIG-003', component:'PLX-02', componentDesc:'Flexible Plastic', qtyPerUnit:2.0, uom:'unit' },
     { projectId:'PRJ-002', versionId:'BOM-002-003-V2', fgpn:'VW-TIG-003', component:'FBR-01', componentDesc:'Fiberglass', qtyPerUnit:1.2, uom:'unit' },
     { projectId:'PRJ-002', versionId:'BOM-002-003L-V1', fgpn:'VW-TIG-003-L', component:'PLX-02', componentDesc:'Flexible Plastic', qtyPerUnit:1.8, uom:'unit' },
-    { projectId:'PRJ-002', versionId:'BOM-002-003L-V1', fgpn:'VW-TIG-003-L', component:'FBR-01', componentDesc:'Fiberglass', qtyPerUnit:1.0, uom:'unit' }
+    { projectId:'PRJ-002', versionId:'BOM-002-003L-V1', fgpn:'VW-TIG-003-L', component:'FBR-01', componentDesc:'Fiberglass', qtyPerUnit:1.0, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-004-V2', fgpn:'VW-TIG-004', component:'STL-08', componentDesc:'Stamped Steel Bracket', qtyPerUnit:1.2, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-004-V2', fgpn:'VW-TIG-004', component:'CLP-21', componentDesc:'Retaining Clip', qtyPerUnit:2.0, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-004R-V1', fgpn:'VW-TIG-004-R', component:'STL-08', componentDesc:'Stamped Steel Bracket', qtyPerUnit:1.0, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-004R-V1', fgpn:'VW-TIG-004-R', component:'CLP-21', componentDesc:'Retaining Clip', qtyPerUnit:1.5, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-005-V1', fgpn:'VW-TIG-005', component:'FOM-12', componentDesc:'Moulded Comfort Foam', qtyPerUnit:1.1, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-005-V1', fgpn:'VW-TIG-005', component:'TXT-09', componentDesc:'Grey Seat Textile', qtyPerUnit:0.8, uom:'metre' },
+    { projectId:'PRJ-003', versionId:'BOM-003-010-V2', fgpn:'PEU-308-010', component:'FOM-12', componentDesc:'Moulded Comfort Foam', qtyPerUnit:1.4, uom:'unit' },
+    { projectId:'PRJ-003', versionId:'BOM-003-010-V2', fgpn:'PEU-308-010', component:'TXT-09', componentDesc:'Grey Seat Textile', qtyPerUnit:1.2, uom:'metre' },
+    { projectId:'PRJ-003', versionId:'BOM-003-012-V1', fgpn:'PEU-308-012', component:'WIR-03', componentDesc:'Headrest Guide Wire', qtyPerUnit:2.0, uom:'unit' },
+    { projectId:'PRJ-003', versionId:'BOM-003-012-V1', fgpn:'PEU-308-012', component:'PLX-02', componentDesc:'Flexible Plastic', qtyPerUnit:0.4, uom:'unit' }
   ],
   bomVersions: [
     { id:'BOM-001-001-V3', projectId:'PRJ-001', fgpn:'BMW-S7-001', version:3, status:'Active', file:'BMW-S7-001_BOM_v3.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'08/07/2026 10:14', activatedAt:'08/07/2026 10:15' },
@@ -603,7 +651,14 @@ const state = {
     { id:'BOM-001-002-V3', projectId:'PRJ-001', fgpn:'BMW-S7-002', version:3, status:'Superseded', file:'BMW-S7-002_BOM_v3.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'10/06/2026 13:10', activatedAt:'10/06/2026 13:11' },
     { id:'BOM-002-003-V2', projectId:'PRJ-002', fgpn:'VW-TIG-003', version:2, status:'Active', file:'VW-TIG-003_BOM_v2.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'04/07/2026 15:20', activatedAt:'04/07/2026 15:22' },
     { id:'BOM-002-003-V1', projectId:'PRJ-002', fgpn:'VW-TIG-003', version:1, status:'Superseded', file:'VW-TIG-003_BOM_v1.xlsx', uploadedBy:'Sofia Marini', uploadedAt:'12/05/2026 09:44', activatedAt:'12/05/2026 09:45' },
-    { id:'BOM-002-003L-V1', projectId:'PRJ-002', fgpn:'VW-TIG-003-L', version:1, status:'Active', file:'VW-TIG-003-L_BOM_v1.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'04/07/2026 15:28', activatedAt:'04/07/2026 15:30' }
+    { id:'BOM-002-003L-V1', projectId:'PRJ-002', fgpn:'VW-TIG-003-L', version:1, status:'Active', file:'VW-TIG-003-L_BOM_v1.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'04/07/2026 15:28', activatedAt:'04/07/2026 15:30' },
+    { id:'BOM-002-004-V2', projectId:'PRJ-002', fgpn:'VW-TIG-004', version:2, status:'Active', file:'VW-TIG-004_BOM_v2.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'12/07/2026 09:12', activatedAt:'12/07/2026 09:14' },
+    { id:'BOM-002-004-V1', projectId:'PRJ-002', fgpn:'VW-TIG-004', version:1, status:'Superseded', file:'VW-TIG-004_BOM_v1.xlsx', uploadedBy:'Sofia Marini', uploadedAt:'03/06/2026 14:20', activatedAt:'03/06/2026 14:21' },
+    { id:'BOM-002-004R-V1', projectId:'PRJ-002', fgpn:'VW-TIG-004-R', version:1, status:'Active', file:'VW-TIG-004-R_BOM_v1.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'12/07/2026 09:18', activatedAt:'12/07/2026 09:19' },
+    { id:'BOM-002-005-V1', projectId:'PRJ-002', fgpn:'VW-TIG-005', version:1, status:'Active', file:'VW-TIG-005_BOM_v1.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'13/07/2026 11:02', activatedAt:'13/07/2026 11:04' },
+    { id:'BOM-003-010-V2', projectId:'PRJ-003', fgpn:'PEU-308-010', version:2, status:'Active', file:'PEU-308-010_BOM_v2.xlsx', uploadedBy:'Farid Korichi', uploadedAt:'14/07/2026 08:35', activatedAt:'14/07/2026 08:37' },
+    { id:'BOM-003-010-V1', projectId:'PRJ-003', fgpn:'PEU-308-010', version:1, status:'Superseded', file:'PEU-308-010_BOM_v1.xlsx', uploadedBy:'Karim Benali', uploadedAt:'22/06/2026 10:10', activatedAt:'22/06/2026 10:12' },
+    { id:'BOM-003-012-V1', projectId:'PRJ-003', fgpn:'PEU-308-012', version:1, status:'Active', file:'PEU-308-012_BOM_v1.xlsx', uploadedBy:'Farid Korichi', uploadedAt:'14/07/2026 09:05', activatedAt:'14/07/2026 09:07' }
   ],
   bomSearchQuery: '',
   bomStatusFilter: 'all',
@@ -621,7 +676,10 @@ state.poLifecycleFilter = 'all';
 state.shopParts = [
   { id:'SHOP-001', launchId:'LAU-2024-05', poId:'PO-2024-019', fgpn:'BMW-S7-002', partNumber:'PCS-HD-442', description:'Leather Headrest', qty:120, recordedBy:'Samir El Idrissi', recordedAt:'08/07 13:20' },
   { id:'SHOP-002', launchId:'LAU-2024-06', poId:'PO-2024-018', fgpn:'BMW-S7-001', partNumber:'PCS-FL-001', description:'Front Left Seat', qty:30, recordedBy:'Samir El Idrissi', recordedAt:'08/07 14:10' },
-  { id:'SHOP-003', launchId:'LAU-2024-06', poId:'PO-2024-018', fgpn:'BMW-S7-001-R', partNumber:'PCS-FR-001', description:'Front Right Seat', qty:20, recordedBy:'Samir El Idrissi', recordedAt:'08/07 14:15' }
+  { id:'SHOP-003', launchId:'LAU-2024-06', poId:'PO-2024-018', fgpn:'BMW-S7-001-R', partNumber:'PCS-FR-001', description:'Front Right Seat', qty:20, recordedBy:'Samir El Idrissi', recordedAt:'08/07 14:15' },
+  { id:'SHOP-004', launchId:'LAU-2024-09', poId:'PO-2024-022', fgpn:'VW-TIG-004', partNumber:'PCS-VW-FBC', description:'Front Backrest Carrier', qty:28, recordedBy:'Samir El Idrissi', recordedAt:'15/07 14:25' },
+  { id:'SHOP-005', launchId:'LAU-2024-09', poId:'PO-2024-022', fgpn:'VW-TIG-004-R', partNumber:'PCS-VW-RBC', description:'Rear Backrest Carrier', qty:12, recordedBy:'Samir El Idrissi', recordedAt:'15/07 14:32' },
+  { id:'SHOP-006', launchId:'LAU-2024-10', poId:'PO-2024-025', fgpn:'PEU-308-012', partNumber:'PCS-PSA-HRS', description:'Headrest Support Assembly', qty:20, recordedBy:'Samir El Idrissi', recordedAt:'16/07 11:40' }
 ];
 state.packageRecords = [
   { id:'PKG-001', launchId:'LAU-2024-05', poId:'PO-2024-019', fgpn:'BMW-S7-002', qty:120, packageType:'Protected pallet', recordedBy:'Lina Zahra', recordedAt:'08/07 16:10' },
