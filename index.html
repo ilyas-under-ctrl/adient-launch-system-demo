@@ -293,6 +293,60 @@
   .detail-panel { margin-top: 24px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-surface); padding: 24px; box-shadow: var(--shadow-sm); }
   .detail-panel-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   .row-details-box svg { width: 16px; height: 16px; stroke: currentColor; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+  .overview-command { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr); gap:16px; margin-bottom:18px; }
+  .overview-panel { background:#fff; border:1px solid var(--border); border-radius:8px; padding:18px; }
+  .overview-panel h2 { margin:0; font-size:14px; }
+  .metric-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border:1px solid var(--border); border-radius:8px; background:#fff; margin-bottom:16px; }
+  .metric-cell { padding:16px 18px; min-width:0; border-right:1px solid var(--border); }
+  .metric-cell:last-child { border-right:0; }
+  .metric-cell strong { display:block; margin-top:5px; color:var(--text-primary); font-size:22px; line-height:1.1; }
+  .metric-cell span { display:block; color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; }
+  .donut { --value:0; --color:var(--accent); width:116px; aspect-ratio:1; border-radius:50%; background:conic-gradient(var(--color) calc(var(--value)*1%), #e7edef 0); position:relative; flex:0 0 auto; }
+  .donut:after { content:""; position:absolute; inset:16px; border-radius:50%; background:#fff; }
+  .donut-label { position:absolute; inset:0; z-index:1; display:grid; place-content:center; text-align:center; font-size:23px; font-weight:800; color:var(--text-primary); }
+  .donut-label small { display:block; font-size:10px; color:var(--text-muted); font-weight:600; }
+  .status-bars { display:grid; gap:10px; }
+  .status-bar-row { display:grid; grid-template-columns:92px minmax(90px,1fr) 30px; gap:10px; align-items:center; font-size:11px; }
+  .status-bar-track { height:8px; background:#e7edef; border-radius:4px; overflow:hidden; }
+  .status-bar-fill { height:100%; border-radius:4px; }
+  .po-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .po-toolbar .form-input { margin:0; }
+  .po-lifecycle-table td { vertical-align:middle; }
+  .po-id-stack { display:grid; gap:3px; }
+  .po-id-stack small { color:var(--text-muted); }
+  .po-progress { min-width:150px; }
+  .po-progress-label { display:flex; justify-content:space-between; gap:8px; margin-bottom:5px; font-size:11px; }
+  .subpo-list { display:flex; gap:5px; flex-wrap:wrap; }
+  .subpo-chip { display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:4px; padding:2px 6px; font-size:10px; background:var(--bg-subtle); color:var(--text-secondary); }
+  .project-picker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+  .project-picker { background:#fff; border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:6px; padding:16px; cursor:pointer; transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease; }
+  .project-picker:hover { transform:translateY(-2px); border-color:var(--accent); box-shadow:var(--shadow-sm); }
+  @media (max-width:1000px) { .overview-command { grid-template-columns:1fr; } .metric-strip { grid-template-columns:repeat(2,1fr); } .metric-cell:nth-child(2) { border-right:0; } .metric-cell:nth-child(-n+2) { border-bottom:1px solid var(--border); } }
+  @media (max-width:680px) { .metric-strip { grid-template-columns:1fr; } .metric-cell { border-right:0; border-bottom:1px solid var(--border); } .metric-cell:last-child { border-bottom:0; } .po-toolbar > * { width:100% !important; } }
+  @media (max-width:800px) {
+    body { display:block; height:100dvh; overflow:hidden; }
+    #actor-bar { height:58px; padding:8px 12px; gap:6px; overflow-x:auto; overflow-y:hidden; align-items:center; }
+    #actor-bar .logo { margin-right:8px; font-size:13px; }
+    #actor-bar .logo-sub { display:none; }
+    .actor-btn { padding:6px 10px; flex:0 0 auto; }
+    #sidebar { position:fixed; z-index:90; top:58px; left:0; right:0; width:100%; min-width:0; height:50px; padding:0 8px; flex-direction:row; align-items:center; overflow-x:auto; overflow-y:hidden; border-right:0; border-bottom:1px solid var(--border); }
+    .sidebar-section { display:none; }
+    .nav-item { flex:0 0 auto; margin:4px 2px; padding:8px 10px; white-space:nowrap; }
+    .nav-item.active { box-shadow:inset 0 -3px 0 var(--lime); }
+    #main { width:100%; height:100dvh; padding-top:108px; overflow-y:auto; }
+    .page { padding:18px 14px 30px; }
+    .page > .page-header.flex-between { align-items:flex-start; flex-wrap:wrap; gap:12px; }
+    .page-title { font-size:19px; overflow-wrap:anywhere; }
+    .pill-tabs { width:100% !important; max-width:100%; overflow-x:auto; flex-wrap:nowrap; }
+    .pill-tab { flex:0 0 auto; white-space:nowrap; }
+    .table-wrap { max-width:100%; overflow-x:auto; }
+    .table-wrap table { min-width:720px; }
+    .overview-panel { padding:14px; overflow:hidden; }
+    .overview-panel .flex-between { flex-wrap:wrap; gap:10px; }
+    .overview-panel .table-wrap { margin-right:0; }
+    .grid-2, .kpi-grid { grid-template-columns:1fr !important; }
+    .modal { max-height:calc(100dvh - 24px); overflow:auto; padding:18px; }
+  }
 </style>
 </head>
 <body>
@@ -304,6 +358,7 @@
   <button class="actor-btn" onclick="switchActor('pm', this)">Plant Manager</button>
   <button class="actor-btn" onclick="switchActor('lm', this)">Launch Manager</button>
   <button class="actor-btn active" onclick="switchActor('le', this)">Launch Engineer</button>
+  <button class="actor-btn" onclick="switchActor('shop', this)">Shop TL</button>
   <button class="actor-btn" onclick="switchActor('wtl', this)">Warehouse TL</button>
   <button class="actor-btn" onclick="switchActor('wp', this)">Warehouse Personnel</button>
 </div>
@@ -360,7 +415,8 @@ const state = {
     { name: 'Sofia Marini', username: 's.marini', role: 'Launch Manager', projects: 2, status: 'locked' },
     { name: 'Nadia Wafa', username: 'n.wafa', role: 'WH Team Leader', projects: 0, status: 'active' },
     { name: 'Jacques Terrier', username: 'j.terrier', role: 'Plant Manager', projects: 0, status: 'active' },
-    { name: 'Farid Korichi', username: 'f.korichi', role: 'Launch Engineer', projects: 1, status: 'inactive' }
+    { name: 'Farid Korichi', username: 'f.korichi', role: 'Launch Engineer', projects: 1, status: 'inactive' },
+    { name: 'Samir El Idrissi', username: 's.elidrissi', role: 'Shop TL', projects: 0, status: 'active' }
   ],
   projects: [
     { id: 'PRJ-001', name: 'BMW Group Series 7', client: 'BMW Group', pos: 3, status: 'In Progress', engineer: 'Ahmed Rami', manager: 'Karim Benali' },
@@ -368,18 +424,18 @@ const state = {
     { id: 'PRJ-003', name: 'Stellantis Peugeot 308', client: 'Stellantis', pos: 1, status: 'Unplanned', engineer: 'Farid Korichi', manager: 'Karim Benali' }
   ],
   pos: [
-    { id: 'PO-2024-018', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-001', qty: 200, week: 27, status: 'Unplanned', price: 12000, hasPV: false, launchedQty: 0, parts: [
+    { id: 'PO-2024-018', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-001', stockCode: 'STK-BMW-018', qty: 200, week: 27, status: 'Unplanned', price: 12000, hasPV: false, launchedQty: 0, subPOs: [{id:'PO-2024-018-A',qty:120,status:'Open'},{id:'PO-2024-018-B',qty:80,status:'Open'}], parts: [
         { fgpn: 'BMW-S7-001', desc: 'Front Left Seat', qty: 120, launched: 0 },
         { fgpn: 'BMW-S7-001-R', desc: 'Front Right Seat', qty: 80, launched: 0 }
       ]},
-    { id: 'PO-2024-019', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-002', qty: 150, week: 28, status: 'In Progress', price: 18500, hasPV: true, launchedQty: 120, parts: [
+    { id: 'PO-2024-019', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-002', stockCode: 'STK-BMW-019', qty: 150, week: 28, status: 'In Progress', price: 18500, hasPV: true, launchedQty: 120, subPOs: [{id:'PO-2024-019-A',qty:100,status:'Launched'},{id:'PO-2024-019-B',qty:50,status:'Partial'}], parts: [
         { fgpn: 'BMW-S7-002', desc: 'Leather Headrest', qty: 150, launched: 120 }
       ]},
-    { id: 'PO-2024-020', project: 'PRJ-002', client: 'Volkswagen AG', fgpn: 'VW-TIG-003', qty: 100, week: 28, status: 'Packaged', price: 9200, hasPV: true, launchedQty: 100, parts: [
+    { id: 'PO-2024-020', project: 'PRJ-002', client: 'Volkswagen AG', fgpn: 'VW-TIG-003', stockCode: 'STK-VW-020', qty: 100, week: 28, status: 'Packaged', price: 9200, hasPV: true, launchedQty: 100, subPOs: [{id:'PO-2024-020-A',qty:100,status:'Completed'}], parts: [
         { fgpn: 'VW-TIG-003', desc: 'Rear Center Backrest', qty: 60, launched: 60 },
         { fgpn: 'VW-TIG-003-L', desc: 'Rear Side Backrest', qty: 40, launched: 40 }
       ]},
-    { id: 'PO-2024-021', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-001', qty: 75, week: 27, status: 'Delivered', price: 4500, hasPV: true, launchedQty: 75, parts: [
+    { id: 'PO-2024-021', project: 'PRJ-001', client: 'BMW Group', fgpn: 'BMW-S7-001', stockCode: 'STK-BMW-021', qty: 75, week: 27, status: 'Delivered', price: 4500, hasPV: true, launchedQty: 75, subPOs: [], parts: [
         { fgpn: 'BMW-S7-001', desc: 'Front Left Seat', qty: 75, launched: 75 }
     ]}
   ],
@@ -534,6 +590,11 @@ const state = {
   activeWhDeliveryId: null          // Delivery instruction unlocked by the Warehouse TL code
 };
 
+state.poLifecycleFilter = 'all';
+state.shopParts = [
+  { id:'SHOP-001', poId:'PO-2024-019', fgpn:'BMW-S7-002', partNumber:'PCS-HD-442', description:'Headrest foam insert', qty:24, recordedBy:'Samir El Idrissi', recordedAt:'08/07 13:20' }
+];
+
 // ══════════════════════════════════════════════
 //  UI ENGINE & NAVIGATION
 // ══════════════════════════════════════════════
@@ -552,6 +613,15 @@ function switchActor(actor, btn) {
 }
 
 function navigateTo(pageId) {
+  if (['le-projects', 'lm-mydash', 'lm-projects', 'pm-projects'].includes(pageId)) {
+    state.selectedProjectIdForLe = null;
+    state.viewingPODetail = null;
+    state.activeWorkspaceTab = 'overview';
+  }
+  if (pageId === 'le-global-sim') {
+    state.selectedProjectIdForLe = null;
+    state.simMode = 'multi';
+  }
   currentPage = pageId;
   if (pageId !== 'wtl-delivery') {
     state.wtlCodeValidated = false;
@@ -623,7 +693,22 @@ function canEditProject(projectOrId) {
   if (!project) return false;
   if (currentActor === 'le') return project.engineer === 'Ahmed Rami';
   if (currentActor === 'lm') return project.manager === 'Karim Benali';
-  return currentActor !== 'pm';
+  return currentActor === 'admin';
+}
+
+function canManageProjectMaster(projectOrId) {
+  const project = typeof projectOrId === 'string'
+    ? state.projects.find(item => item.id === projectOrId)
+    : projectOrId;
+  if (!project) return false;
+  if (currentActor === 'lm') return project.manager === 'Karim Benali';
+  return currentActor === 'admin';
+}
+
+function requireProjectMasterAccess(projectId) {
+  if (canManageProjectMaster(projectId)) return true;
+  alert('Project master data can only be changed by the assigned Launch Manager or a System Administrator.');
+  return false;
 }
 
 function isReadOnlyProjectWorkspace() {
@@ -745,12 +830,14 @@ const actors = {
       { s: 'My Projects' },
       { id: 'le-dash', icon: 'home', label: 'Dashboard' },
       { id: 'le-projects', icon: 'folder', label: 'My Projects' },
+      { id: 'le-global-sim', icon: 'search', label: 'Global Simulation' },
       { s: 'Warehouse & Stocks' },
       { id: 'le-stock', icon: 'reception', label: 'Practical Stock' }
     ],
     pages: {
       'le-dash': () => renderLeDash(false),
       'le-projects': () => renderLeProjects(true),
+      'le-global-sim': renderLeSim,
       'le-pos': renderLePOs,
       'le-sim': renderLeSim,
       'le-bom': renderLeBom,
@@ -761,12 +848,23 @@ const actors = {
       'le-audit': () => renderLeAudit(false)
     }
   },
+  shop: {
+    nav: [
+      { s: 'Shop Floor' },
+      { id: 'shop-dash', icon: 'home', label: 'Production Overview' },
+      { id: 'shop-parts', icon: 'list', label: 'Record New Parts' }
+    ],
+    pages: {
+      'shop-dash': renderShopDash,
+      'shop-parts': renderShopParts
+    }
+  },
   wtl: {
     nav: [
       { s: 'Material Flow' },
       { id: 'wtl-dash', icon: 'home', label: 'Warehouse Home' },
       { id: 'wtl-reception', icon: 'reception', label: 'Registration' },
-      { id: 'wtl-delivery', icon: 'doc', label: 'Picking Sheet' },
+      { id: 'wtl-delivery', icon: 'doc', label: 'Delivery Instruction' },
       { id: 'wtl-stock', icon: 'list', label: 'Stock Alert' }
     ],
     pages: {
@@ -864,6 +962,7 @@ function renderAdminDash() {
           ${rRoleBar('Plant Manager', state.users.filter(u=>u.role==='Plant Manager').length, 'var(--purple)')}
           ${rRoleBar('Launch Manager', state.users.filter(u=>u.role==='Launch Manager').length, 'var(--accent)')}
           ${rRoleBar('Launch Engineer', state.users.filter(u=>u.role==='Launch Engineer').length, 'var(--green)')}
+          ${rRoleBar('Shop TL', state.users.filter(u=>u.role==='Shop TL').length, 'var(--orange)')}
           ${rRoleBar('WH Team Leader', state.users.filter(u=>u.role==='WH Team Leader').length, 'var(--orange)')}
           ${rRoleBar('WH Personnel', state.users.filter(u=>u.role==='WH Personnel').length, 'var(--gold)')}
         </div>
@@ -1287,6 +1386,8 @@ function renderPmPOs() {
         p.client.toLowerCase().includes(query) ||
         p.project.toLowerCase().includes(query) ||
         p.fgpn.toLowerCase().includes(query) ||
+        (p.stockCode || '').toLowerCase().includes(query) ||
+        (p.parts || []).some(part => `${part.fgpn} ${part.desc}`.toLowerCase().includes(query)) ||
         p.status.toLowerCase().includes(query)
       )
     : list;
@@ -1317,7 +1418,7 @@ function renderPmPOs() {
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>PO Reference</th><th>Project</th><th>Client</th><th>FGPN</th><th>Qty (Remaining / Total)</th><th>Week</th><th>Status</th></tr>
+            <tr><th>PO Reference</th><th>Project</th><th>Client</th><th>Stock code</th><th>Part numbers</th><th>Launch</th><th>Qty (Remaining / Total)</th><th>Week</th><th>Status</th></tr>
           </thead>
           <tbody>
             ${filtered.map(p => {
@@ -1333,7 +1434,9 @@ function renderPmPOs() {
                   <td class="cell-primary fw-600">${p.id}</td>
                   <td>${p.project}</td>
                   <td>${p.client}</td>
-                  <td style="font-family:monospace">${p.fgpn}</td>
+                  <td><code>${p.stockCode||'-'}</code></td>
+                  <td><strong>${(p.parts||[]).length}</strong><div class="text-xs">${(p.parts||[]).map(part=>part.fgpn).join(', ')}</div></td>
+                  <td class="fw-600">${p.launchedQty||0} / ${p.qty} u</td>
                   <td class="fw-600">${remaining} / ${p.qty} u</td>
                   <td>Wk. ${p.week}</td>
                   <td><span class="badge ${p.status==='Unplanned'?'grey':p.status==='In Progress'?'blue':p.status==='Packaged'?'orange':'green'}">${p.status}</span></td>
@@ -1343,7 +1446,7 @@ function renderPmPOs() {
               if (isSelected) {
                 rowHtml += `
                   <tr style="background: var(--bg-hover)">
-                    <td colspan="7" style="padding: 16px 24px; border-bottom: 1px solid var(--border)">
+                    <td colspan="9" style="padding: 16px 24px; border-bottom: 1px solid var(--border)">
                       ${renderPmPORowDetails(p, linkedDeliveries, totalDelivered, remaining)}
                     </td>
                   </tr>
@@ -1680,13 +1783,13 @@ function renderLeDash(isManager) {
           })()}
         </div>
         <div class="card">
-          <h2 class="card-title">Picking Signatures Pending Validation (M11)</h2>
+          <h2 class="card-title">Warehouse Transfer Receipts Pending Validation</h2>
           <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px">
             ${(() => {
               const assignedProjIds = getManagedProjectIds();
               const pendingSignatures = state.whDeliveries.filter(d => assignedProjIds.includes(d.project) && d.status === 'signed_pending');
               if (pendingSignatures.length === 0) {
-                return `<p class="text-xs" style="color:var(--text-muted); padding:10px 0;">No signed picking orders pending validation.</p>`;
+                return `<p class="text-xs" style="color:var(--text-muted); padding:10px 0;">No signed warehouse transfer receipts pending validation.</p>`;
               }
               return pendingSignatures.map(d => `
                 <div style="padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg-base)">
@@ -1784,7 +1887,7 @@ function renderLmMyDash() {
         <div class="kpi-card" style="--kpi-color: var(--green)">
           <div class="kpi-label">Signatures pending</div>
           <div class="kpi-value">${myPendingSignatures.length}</div>
-          <div class="kpi-delta neutral">picking orders to validate</div>
+          <div class="kpi-delta neutral">warehouse receipts to validate</div>
         </div>
       </div>
 
@@ -1877,6 +1980,144 @@ function renderLeProjects(ownOnly) {
       </div>
     </div>
   `;
+}
+
+function poStatusClass(status) {
+  return status === 'Delivered' ? 'green' : status === 'Unplanned' ? 'grey' : status === 'In Progress' ? 'blue' : 'orange';
+}
+
+function getPoShipments(poId) {
+  return state.deliveries.filter(delivery => delivery.po === poId);
+}
+
+function syncProjectProgress(projectId) {
+  const project = state.projects.find(item => item.id === projectId);
+  const projectPOs = state.pos.filter(po => po.project === projectId);
+  if (!project || !projectPOs.length) return;
+  if (projectPOs.every(po => po.status === 'Delivered')) project.status = 'Delivered';
+  else if (projectPOs.every(po => ['Packaged', 'Delivered'].includes(po.status))) project.status = 'Packaged';
+  else if (projectPOs.some(po => Number(po.launchedQty || 0) > 0 || ['In Progress', 'Done'].includes(po.status))) project.status = 'In Progress';
+  else project.status = 'Unplanned';
+  project.pos = projectPOs.length;
+}
+
+function renderStatusBar(label, value, total, color) {
+  const width = total ? Math.max(value ? 8 : 0, Math.round(value / total * 100)) : 0;
+  return `<div class="status-bar-row"><span>${label}</span><div class="status-bar-track"><div class="status-bar-fill" style="width:${width}%;background:${color}"></div></div><strong>${value}</strong></div>`;
+}
+
+function renderProjectOverviewV2(project, projectPOs) {
+  const totalQty = projectPOs.reduce((sum, po) => sum + Number(po.qty || 0), 0);
+  const launchedQty = projectPOs.reduce((sum, po) => sum + Number(po.launchedQty || 0), 0);
+  const launchProgress = totalQty ? Math.round(launchedQty / totalQty * 100) : 0;
+  const deliveries = state.deliveries.filter(delivery => projectPOs.some(po => po.id === delivery.po));
+  const confirmed = deliveries.filter(delivery => delivery.status === 'Delivered');
+  const confirmedValue = confirmed.reduce((sum, delivery) => sum + Number(delivery.value || 0) + Number(delivery.transportCost || 0), 0);
+  const invoiceTotal = state.invoices.filter(invoice => invoice.project === project.id).reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
+  const unplanned = projectPOs.filter(po => po.status === 'Unplanned').length;
+  const inProgress = projectPOs.filter(po => Number(po.launchedQty || 0) > 0 && po.status !== 'Delivered').length;
+  const shipmentReady = projectPOs.filter(po => ['Done', 'Packaged'].includes(po.status)).length;
+  const delivered = projectPOs.filter(po => po.status === 'Delivered').length;
+  const launchLines = projectPOs.filter(po => po.status !== 'Delivered').flatMap(po => (po.parts || []).filter(part => Number(part.launched || 0) > 0).map(part => ({...part, poId:po.id, status:po.status})));
+  const poIds = projectPOs.map(po => po.id);
+  const versionCount = projectPOs.reduce((sum, po) => sum + (state.poVersions[po.id] || []).length, 0);
+  const auditCount = state.auditLog.filter(event => [project.id, ...poIds].some(ref => `${event.action} ${event.oldValue} ${event.newValue} ${event.reason}`.includes(ref))).length;
+  const evidenceCount = [versionCount > 0, projectPOs.some(po => po.hasPV), deliveries.length > 0, state.invoices.some(inv => inv.project === project.id)].filter(Boolean).length;
+  return `
+    <div class="metric-strip">
+      <div class="metric-cell"><span>Launch progress</span><strong>${launchProgress}%</strong><div class="text-xs">${launchedQty} / ${totalQty} units</div></div>
+      <div class="metric-cell"><span>Active POs</span><strong>${projectPOs.filter(po=>po.status!=='Delivered').length}</strong><div class="text-xs">${projectPOs.length} total orders</div></div>
+      <div class="metric-cell"><span>Confirmed revenue</span><strong>${confirmedValue.toLocaleString()} EUR</strong><div class="text-xs">Invoices: ${invoiceTotal.toLocaleString()} EUR</div></div>
+      <div class="metric-cell"><span>Audit evidence</span><strong>${evidenceCount}/4</strong><div class="text-xs">${versionCount} versions · ${auditCount} events</div></div>
+    </div>
+    <div class="overview-command">
+      <section class="overview-panel">
+        <div class="flex-between" style="margin-bottom:16px"><div><h2>PO lifecycle</h2><div class="text-xs" style="margin-top:4px">Live distribution from planning through customer delivery</div></div><button class="btn btn-outline" onclick="switchWorkspaceTab('pos')">Open all POs</button></div>
+        <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+          <div class="donut" style="--value:${launchProgress};--color:var(--accent)"><div class="donut-label">${launchProgress}%<small>launched</small></div></div>
+          <div class="status-bars" style="flex:1;min-width:260px">
+            ${renderStatusBar('Unplanned', unplanned, projectPOs.length, '#94a3b8')}
+            ${renderStatusBar('In progress', inProgress, projectPOs.length, 'var(--accent)')}
+            ${renderStatusBar('Shipments', shipmentReady, projectPOs.length, 'var(--orange)')}
+            ${renderStatusBar('Delivered', delivered, projectPOs.length, 'var(--green)')}
+          </div>
+        </div>
+      </section>
+      <aside class="overview-panel">
+        <div class="flex-between" style="margin-bottom:14px"><h2>Finance & audit</h2><span class="badge ${evidenceCount===4?'green':'orange'}">${evidenceCount===4?'Complete':'Attention'}</span></div>
+        <div style="display:grid;gap:11px;font-size:12px">
+          <div class="flex-between"><span>Customer deliveries</span><strong>${deliveries.length}</strong></div>
+          <div class="flex-between"><span>Pending confirmations</span><strong style="color:var(--orange)">${deliveries.filter(d=>d.status!=='Delivered').length}</strong></div>
+          <div class="flex-between"><span>PO source versions</span><strong>${versionCount}</strong></div>
+          <div class="flex-between"><span>Meeting minutes linked</span><strong>${projectPOs.filter(po=>po.hasPV).length}/${projectPOs.length}</strong></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-outline" style="flex:1" onclick="switchWorkspaceTab('finance')">Finance</button><button class="btn btn-outline" style="flex:1" onclick="switchWorkspaceTab('audit')">Audit</button></div>
+      </aside>
+    </div>
+    <section class="overview-panel">
+      <div class="flex-between" style="margin-bottom:12px"><div><h2>Items in progress</h2><div class="text-xs" style="margin-top:4px">Every launched FGPN remains visible until the PO is delivered</div></div><span class="badge blue">${launchLines.length} launched lines</span></div>
+      <div class="table-wrap"><table><thead><tr><th>PO</th><th>Stock code</th><th>FGPN</th><th>Description</th><th>Launched</th><th>Remaining</th><th>PO status</th></tr></thead><tbody>
+        ${launchLines.map(line=>{const po=projectPOs.find(item=>item.id===line.poId);return `<tr onclick="showPODetailPage('${line.poId}')" style="cursor:pointer"><td class="fw-600">${line.poId}</td><td><code>${po.stockCode||'-'}</code></td><td><code>${line.fgpn}</code></td><td>${line.desc}</td><td class="fw-600" style="color:var(--green)">${line.launched} u</td><td>${Math.max(0,line.qty-line.launched)} u</td><td><span class="badge ${poStatusClass(line.status)}">${line.status}</span></td></tr>`}).join('')}
+        ${launchLines.length? '':`<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No parts have been launched yet.</td></tr>`}
+      </tbody></table></div>
+    </section>`;
+}
+
+function setPoLifecycleFilter(filter) {
+  state.poLifecycleFilter = filter;
+  renderPageContent();
+}
+
+function poMatchesLifecycle(po, filter) {
+  if (filter === 'in-progress') return Number(po.launchedQty || 0) > 0 && po.status !== 'Delivered';
+  if (filter === 'shipments') return ['Done', 'Packaged'].includes(po.status);
+  if (filter === 'delivered') return po.status === 'Delivered';
+  if (filter === 'unplanned') return po.status === 'Unplanned';
+  return true;
+}
+
+function renderUnifiedPOWorkspace(project, projectPOs) {
+  const query = (state.poSearchQuery || '').trim().toLowerCase();
+  const filter = state.poLifecycleFilter || 'all';
+  const filtered = projectPOs.filter(po => poMatchesLifecycle(po, filter)).filter(po => {
+    const searchable = [po.id, po.stockCode, po.client, po.status, ...(po.parts||[]).flatMap(part=>[part.fgpn,part.desc]), ...(po.subPOs||[]).map(item=>item.id)].join(' ').toLowerCase();
+    return !query || searchable.includes(query);
+  });
+  const count = key => projectPOs.filter(po => poMatchesLifecycle(po,key)).length;
+  return `
+    <div class="po-toolbar">
+      <div style="margin-right:auto"><h2 class="card-title" style="margin:0">Purchase order lifecycle</h2><div class="text-xs" style="margin-top:4px">Creation, versions, launch, production, shipment, delivery, finance, and audit in one record</div></div>
+      <div style="position:relative;min-width:280px"><span style="position:absolute;left:10px;top:9px;width:16px;color:var(--text-muted)">${SVGS.search}</span><input id="le-po-search" class="form-input" style="padding-left:34px;width:100%" placeholder="Search PO, stock code, FGPN, description..." value="${state.poSearchQuery||''}" oninput="actionSearchPOs(this.value)"></div>
+      ${canEditProject(project)?`<button class="btn btn-primary" onclick="triggerPOUploadSelection()">${SVGS.upload} Upload PO</button>`:''}
+    </div>
+    <div class="pill-tabs" style="margin-bottom:14px;max-width:100%;overflow:auto">
+      ${[['all','All',projectPOs.length],['unplanned','Unplanned',count('unplanned')],['in-progress','In Progress',count('in-progress')],['shipments','Shipments',count('shipments')],['delivered','Delivered',count('delivered')]].map(([key,label,total])=>`<div class="pill-tab ${filter===key?'active':''}" onclick="setPoLifecycleFilter('${key}')">${label} (${total})</div>`).join('')}
+    </div>
+    <div class="table-wrap"><table class="po-lifecycle-table"><thead><tr><th>PO / Sub-POs</th><th>Stock code</th><th>Part numbers</th><th>Launch progress</th><th>Shipment</th><th>Status</th><th>Action</th></tr></thead><tbody>
+      ${filtered.map(po=>{
+        const shipments=getPoShipments(po.id); const confirmed=shipments.filter(item=>item.status==='Delivered').reduce((s,item)=>s+item.qty,0); const progress=po.qty?Math.round(Number(po.launchedQty||0)/po.qty*100):0;
+        return `<tr>
+          <td><div class="po-id-stack"><strong>${po.id}</strong><small>${po.client} · Wk. ${po.week}</small><div class="subpo-list">${(po.subPOs||[]).map(sub=>`<span class="subpo-chip">${sub.id} · ${sub.qty}u</span>`).join('')||'<small>No sub-PO</small>'}</div></div></td>
+          <td><code>${po.stockCode||'-'}</code></td>
+          <td><strong>${(po.parts||[]).length}</strong><div class="text-xs">${(po.parts||[]).map(part=>part.fgpn).join(', ')}</div></td>
+          <td><div class="po-progress"><div class="po-progress-label"><strong>${po.launchedQty||0}/${po.qty} u</strong><span>${progress}%</span></div><div class="progress"><div class="progress-fill" style="width:${progress}%;background:${progress===100?'var(--green)':'var(--accent)'}"></div></div></div></td>
+          <td>${shipments.length?`<strong>${shipments.length} record${shipments.length>1?'s':''}</strong><div class="text-xs">${confirmed} u confirmed · ${shipments.filter(item=>item.status!=='Delivered').length} pending</div>`:`<span class="text-xs">Not scheduled</span>`}</td>
+          <td><span class="badge ${poStatusClass(po.status)}">${po.status}</span></td>
+          <td style="white-space:nowrap"><button class="btn btn-outline" style="padding:5px 8px" title="Open complete PO record" onclick="showPODetailPage('${po.id}')">${SVGS.eye}</button>${canEditProject(project)?`<button class="btn btn-outline" style="padding:5px 8px;margin-left:4px" title="Add sub-PO" onclick="showAddSubPOModal('${po.id}')">+</button>`:''}</td>
+        </tr>`;
+      }).join('')}
+      ${filtered.length?'':`<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:28px">No purchase orders match this lifecycle view.</td></tr>`}
+    </tbody></table></div>`;
+}
+
+function renderProjectShipmentsV2(project, projectPOs) {
+  const readyPOs = projectPOs.filter(po => ['Done','Packaged'].includes(po.status));
+  const poIds = projectPOs.map(po => po.id);
+  const deliveries = state.deliveries.filter(delivery => poIds.includes(delivery.po));
+  return `<div class="page-header flex-between" style="padding:0;margin-bottom:14px"><div><h2 class="card-title" style="margin:0">Shipments</h2><p class="page-subtitle" style="margin:4px 0 0">Completed POs remain here until confirmed customer delivery.</p></div>${canEditProject(project)?`<button class="btn btn-primary" onclick="showCreateClientDeliveryModal()">Schedule shipment</button>`:''}</div>
+    <div class="metric-strip" style="grid-template-columns:repeat(3,1fr)"><div class="metric-cell"><span>Ready to ship</span><strong>${readyPOs.length}</strong></div><div class="metric-cell"><span>Pending confirmation</span><strong>${deliveries.filter(d=>d.status!=='Delivered').length}</strong></div><div class="metric-cell"><span>Confirmed</span><strong>${deliveries.filter(d=>d.status==='Delivered').length}</strong></div></div>
+    <div class="overview-panel" style="margin-bottom:16px"><h2 style="margin-bottom:12px">Completed POs awaiting delivery</h2><div class="table-wrap"><table><thead><tr><th>PO</th><th>Stock code</th><th>Part numbers</th><th>Quantity</th><th>Status</th><th>Shipment action</th></tr></thead><tbody>${readyPOs.map(po=>`<tr><td class="fw-600">${po.id}</td><td><code>${po.stockCode}</code></td><td>${po.parts.length}</td><td>${po.qty} u</td><td><span class="badge orange">${po.status}</span></td><td><button class="btn btn-outline" onclick="showPODetailPage('${po.id}')">Open PO</button></td></tr>`).join('')}${readyPOs.length?'':`<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No completed POs are waiting for delivery.</td></tr>`}</tbody></table></div></div>
+    <div class="overview-panel"><h2 style="margin-bottom:12px">Shipment records</h2><div class="table-wrap"><table><thead><tr><th>Shipment</th><th>PO / FGPN</th><th>Qty</th><th>Date</th><th>Method</th><th>Status</th><th>Evidence</th></tr></thead><tbody>${deliveries.map(d=>`<tr><td class="fw-600">${d.id}</td><td>${d.po}<div class="text-xs">${d.fgpn}</div></td><td>${d.qty} u</td><td>${d.date}</td><td>${d.method}</td><td><span class="badge ${d.status==='Delivered'?'green':'orange'}">${d.status==='Delivered'?'Confirmed':'Pending'}</span></td><td>${d.proof||'Awaiting confirmation'}</td></tr>`).join('')}${deliveries.length?'':`<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No shipment records.</td></tr>`}</tbody></table></div></div>`;
 }
 
 function renderLeProjectWorkspace(projectId) {
@@ -1988,6 +2229,7 @@ function renderLeProjectWorkspace(projectId) {
         </div>
       </section>
     `;
+    tabContentHtml = renderProjectOverviewV2(p, projectPOs);
   } else if (activeTab === 'pos') {
     const query = (state.poSearchQuery || '').toLowerCase().trim();
     const filteredPOs = query
@@ -2153,6 +2395,7 @@ function renderLeProjectWorkspace(projectId) {
         </div>
       ` : ''}
     `;
+    if (!state.pendingPOExtraction) tabContentHtml = renderUnifiedPOWorkspace(p, projectPOs);
   } else if (activeTab === 'bom') {
     tabContentHtml = `
       <div class="page-header flex-between" style="padding:0; margin-bottom:16px">
@@ -2267,7 +2510,8 @@ function renderLeProjectWorkspace(projectId) {
   } else if (activeTab === 'launch-authorization') {
     tabContentHtml = renderLaunchAuthorizationPage(p);
   } else if (activeTab === 'launch') {
-    const launchPlan = evaluateLaunchPlan(projectPOs);
+    const launchEligiblePOs = projectPOs.filter(po => po.status !== 'Delivered');
+    const launchPlan = evaluateLaunchPlan(launchEligiblePOs);
     tabContentHtml = `
       <div class="page-header flex-between" style="padding:0; margin-bottom:16px">
         <div>
@@ -2278,7 +2522,7 @@ function renderLeProjectWorkspace(projectId) {
 
       <div id="launch-decision">${renderLaunchDecision(launchPlan)}</div>
 
-      ${projectPOs.map(po => {
+      ${launchEligiblePOs.map(po => {
         const parts = po.parts || [{ fgpn: po.fgpn, desc: '-', qty: po.qty, launched: po.launchedQty }];
         const isComplete = parts.every(pt => pt.launched >= pt.qty);
         const isSelected = (state.launchSelectedPOs || []).includes(po.id);
@@ -2332,6 +2576,7 @@ function renderLeProjectWorkspace(projectId) {
           </div>
         </div>`;
       }).join('')}
+      ${launchEligiblePOs.length ? '' : `<div class="overview-panel" style="text-align:center;color:var(--text-muted);padding:28px">All purchase orders in this project have been delivered. There is nothing left to launch.</div>`}
     `;
 
   } else if (activeTab === 'suivi') {
@@ -2595,12 +2840,12 @@ function renderLeProjectWorkspace(projectId) {
     `;
   } else if (activeTab === 'wh') {
     tabContentHtml = `
-      <div style="font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:16px">Picking Orders (Internal warehouse → factory flow)</div>
+      <div style="font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:16px">Warehouse Transfer Records</div>
       
       ${currentActor !== 'pm' ? `
       <div class="grid-2" style="margin-bottom: 24px">
         <div class="card">
-          <h2 class="card-title">Create Picking Order</h2>
+          <h2 class="card-title">Create Warehouse Transfer Instruction</h2>
           <div class="form-group" style="margin-top:12px">
             <label class="form-label">Select Purchase Order (PO)</label>
             <select class="form-input form-select" id="instr-po-select">
@@ -2656,7 +2901,7 @@ function renderLeProjectWorkspace(projectId) {
       ` : ''}
 
       <div class="card">
-        <h2 class="card-title">Project Picking Order History</h2>
+        <h2 class="card-title">Project Warehouse Transfer History</h2>
         <div class="table-wrap mt-12">
           <table>
             <thead>
@@ -2744,6 +2989,7 @@ function renderLeProjectWorkspace(projectId) {
         ` : ''}
       </div>
     `;
+    tabContentHtml = renderProjectShipmentsV2(p, projectPOs);
   } else if (activeTab === 'audit') {
     tabContentHtml = renderProjectAuditTab(p, projectPOs);
   } else if (activeTab === 'finance') {
@@ -2763,7 +3009,7 @@ function renderLeProjectWorkspace(projectId) {
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px">
-          ${canEditProject(p) ? `
+          ${canManageProjectMaster(p) ? `
             <button class="btn btn-outline" onclick="showEditProjectModal('${p.id}')">Edit project</button>
             <button class="btn btn-outline" style="color:var(--red)" onclick="actionDeleteProject('${p.id}')">Delete project</button>
           ` : ''}
@@ -2784,10 +3030,7 @@ function renderLeProjectWorkspace(projectId) {
         <div class="pill-tab ${activeTab === 'pos' ? 'active' : ''}" onclick="switchWorkspaceTab('pos')">Purchase Orders (POs)</div>
         <div class="pill-tab ${activeTab === 'bom' ? 'active' : ''}" onclick="switchWorkspaceTab('bom')">BOM</div>
         <div class="pill-tab ${activeTab === 'launch' || activeTab === 'launch-authorization' ? 'active' : ''}" onclick="switchWorkspaceTab('launch')">Launch</div>
-        <div class="pill-tab ${activeTab === 'suivi' ? 'active' : ''}" onclick="switchWorkspaceTab('suivi')">PO Tracking</div>
-        <div class="pill-tab ${activeTab === 'sim' ? 'active' : ''}" onclick="switchWorkspaceTab('sim')">Feasibility Simulation</div>
-        <div class="pill-tab ${activeTab === 'wh' ? 'active' : ''}" onclick="switchWorkspaceTab('wh')">Picking Orders</div>
-        <div class="pill-tab ${activeTab === 'logistics' ? 'active' : ''}" onclick="switchWorkspaceTab('logistics')">Shipments & Invoices</div>
+        <div class="pill-tab ${activeTab === 'logistics' ? 'active' : ''}" onclick="switchWorkspaceTab('logistics')">Shipments</div>
         <div class="pill-tab ${activeTab === 'finance' ? 'active' : ''}" onclick="switchWorkspaceTab('finance')">Finance</div>
         <div class="pill-tab ${activeTab === 'audit' ? 'active' : ''}" onclick="switchWorkspaceTab('audit')">Audit Package</div>
       </div>
@@ -2831,6 +3074,8 @@ function renderLePOs() {
         p.client.toLowerCase().includes(query) ||
         p.project.toLowerCase().includes(query) ||
         p.fgpn.toLowerCase().includes(query) ||
+        (p.stockCode || '').toLowerCase().includes(query) ||
+        (p.parts || []).some(part => `${part.fgpn} ${part.desc}`.toLowerCase().includes(query)) ||
         p.status.toLowerCase().includes(query)
       )
     : list;
@@ -2862,22 +3107,24 @@ function renderLePOs() {
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>PO Reference</th><th>Project</th><th>Access</th><th>Client</th><th>FGPN</th><th>Qty (Remaining / Total)</th><th>Week</th><th>Status</th><th></th></tr>
+            <tr><th>PO / Sub-POs</th><th>Project / Access</th><th>Stock code</th><th>Part numbers</th><th>Launch</th><th>Shipment</th><th>Week</th><th>Status</th><th></th></tr>
           </thead>
           <tbody>
             ${filtered.map(p => {
-              const remaining = p.status === 'Delivered' ? 0 : p.qty;
+              const shipments = getPoShipments(p.id);
+              const confirmed = shipments.filter(item=>item.status==='Delivered').reduce((sum,item)=>sum+item.qty,0);
+              const launchProgress = p.qty ? Math.round(Number(p.launchedQty||0)/p.qty*100) : 0;
               return `
                 <tr>
-                   <td class="cell-primary fw-600">${p.id}</td>
-                   <td>${p.project}</td>
-                   <td><span class="badge ${canEditProject(p.project) ? 'green' : 'grey'}">${getProjectAccessLabel(p.project)}</span></td>
-                   <td>${p.client}</td>
-                  <td style="font-family: monospace">${p.fgpn}</td>
-                  <td class="fw-600">${remaining} / ${p.qty} u</td>
+                   <td><strong>${p.id}</strong><div class="subpo-list" style="margin-top:4px">${(p.subPOs||[]).map(sub=>`<span class="subpo-chip">${sub.id}</span>`).join('')}</div></td>
+                   <td>${p.project}<div style="margin-top:4px"><span class="badge ${canEditProject(p.project) ? 'green' : 'grey'}">${getProjectAccessLabel(p.project)}</span></div></td>
+                  <td><code>${p.stockCode||'-'}</code></td>
+                  <td><strong>${(p.parts||[]).length}</strong><div class="text-xs">${(p.parts||[]).map(part=>part.fgpn).join(', ')}</div></td>
+                  <td><strong>${p.launchedQty||0}/${p.qty} u</strong><div class="text-xs">${launchProgress}% launched</div></td>
+                  <td><strong>${shipments.length}</strong><div class="text-xs">${confirmed} u confirmed</div></td>
                   <td>Wk. ${p.week}</td>
                   <td><span class="badge ${p.status==='Unplanned'?'grey':p.status==='In Progress'?'blue':p.status==='Packaged'?'orange':'green'}">${p.status}</span></td>
-                  <td><button class="btn btn-outline" style="padding:4px 8px; font-size:11px" onclick="showPODetailModal('${p.id}')">Detail</button></td>
+                  <td><button class="btn btn-outline" style="padding:4px 8px; font-size:11px" onclick="selectLeProject('${p.project}'); showPODetailPage('${p.id}')">Open lifecycle</button></td>
                 </tr>
               `;
             }).join('')}
@@ -2953,7 +3200,7 @@ function renderLePOs() {
 
 function renderLeSim() {
   const simMode = state.simMode || 'single';
-  const allowedPOs = getFilteredPOs();
+  const allowedPOs = getFilteredPOs().filter(po => po.status !== 'Delivered');
   let selectedPOs = state.simSelectedPOs || [];
 
   if (selectedPOs.length === 0 && allowedPOs.length > 0) {
@@ -2994,7 +3241,7 @@ function renderLeSim() {
     const demand = {};
     simulationPOs.forEach(order => (order.parts || [{fgpn:order.fgpn,qty:order.qty,launched:order.launchedQty||0}]).forEach(part => {
       const remaining = Math.max(0, Number(part.qty||0)-Number(part.launched||0));
-      const mappings = state.bomMappings.filter(mapping=>mapping.fgpn===part.fgpn);
+      const mappings = (state.bomData || []).filter(mapping=>mapping.fgpn===part.fgpn);
       if (!mappings.length) { if(!missingBomFGPNs.includes(part.fgpn)) missingBomFGPNs.push(part.fgpn); return; }
       mappings.forEach(mapping=>{ demand[mapping.component]=(demand[mapping.component]||0)+remaining*mapping.qtyPerUnit*2; });
     }));
@@ -3110,7 +3357,7 @@ function renderLeSim() {
                         <label style="display:flex; align-items:center; gap:10px; padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:8px; cursor:pointer; background:#fff">
                           <input type="checkbox" value="${p.id}" ${checked} onchange="toggleSimPO('${p.id}')">
                           <div style="font-size:12px">
-                            <div><strong>${p.id}</strong> <span class="badge grey" style="font-size:9px; padding:1px 4px">${p.status}</span></div>
+                            <div><strong>${p.id}</strong> <span class="badge blue" style="font-size:9px; padding:1px 4px">${p.project}</span> <span class="badge grey" style="font-size:9px; padding:1px 4px">${p.status}</span></div>
                             <div style="color:var(--text-secondary); margin-top:2px">${p.client} · ${p.qty} u · FGPN: ${p.fgpn}</div>
                           </div>
                         </label>
@@ -3442,7 +3689,7 @@ function actionSearchMaterialStock(value) {
 }
 
 function renderLeWhDelivery() {
-  const allowedPOs = getFilteredPOs();
+  const allowedPOs = getFilteredPOs().filter(po => po.status !== 'Delivered');
   const editableProjectIds = getManagedProjectIds();
   const pendingEditable = state.whDeliveries.filter(d => d.status === 'signed_pending' && editableProjectIds.includes(d.project));
   return `
@@ -4178,7 +4425,7 @@ function renderWtlDelivery() {
             </div>
             <button class="btn btn-primary" style="width:100%; justify-content:center" onclick="actionPrintDeliveryDoc('${activeDelivery.id}')">Generate and Print Document</button>
           ` : `
-            <p class="text-xs" style="color:var(--text-muted)">No active picking sheet loaded. Please validate a code first.</p>
+            <p class="text-xs" style="color:var(--text-muted)">No active delivery instruction loaded. Validate a code first.</p>
           `}
         </div>
 
@@ -4331,6 +4578,64 @@ function renderWpDash() {
 
 
 // ══════════════════════════════════════════════
+function getShopActiveLines() {
+  return state.pos.filter(po => Number(po.launchedQty || 0) > 0 && po.status !== 'Delivered').flatMap(po =>
+    (po.parts || []).filter(part => Number(part.launched || 0) > 0).map(part => ({...part, poId:po.id, stockCode:po.stockCode, project:po.project, poStatus:po.status}))
+  );
+}
+
+function renderShopDash() {
+  const lines = getShopActiveLines();
+  const todayQty = state.shopParts.reduce((sum, record) => sum + Number(record.qty || 0), 0);
+  return `<div class="page"><div class="page-header"><h1 class="page-title">Production Overview</h1><p class="page-subtitle">Launched FGPNs available for shop-floor piece recording</p></div>
+    <div class="metric-strip"><div class="metric-cell"><span>Active POs</span><strong>${new Set(lines.map(line=>line.poId)).size}</strong></div><div class="metric-cell"><span>Launched FGPNs</span><strong>${lines.length}</strong></div><div class="metric-cell"><span>Pieces recorded</span><strong>${todayQty}</strong></div><div class="metric-cell"><span>Open quantity</span><strong>${lines.reduce((sum,line)=>sum+Math.max(0,line.qty-line.launched),0)}</strong></div></div>
+    <div class="overview-panel"><div class="flex-between" style="margin-bottom:12px"><h2>Active production lines</h2><button class="btn btn-primary" onclick="navigateTo('shop-parts')">Record pieces</button></div><div class="table-wrap"><table><thead><tr><th>Project</th><th>PO</th><th>Stock code</th><th>FGPN</th><th>Description</th><th>Launched</th><th>Status</th></tr></thead><tbody>${lines.map(line=>`<tr><td>${line.project}</td><td class="fw-600">${line.poId}</td><td><code>${line.stockCode}</code></td><td><code>${line.fgpn}</code></td><td>${line.desc}</td><td>${line.launched} u</td><td><span class="badge blue">${line.poStatus}</span></td></tr>`).join('')}</tbody></table></div></div></div>`;
+}
+
+function renderShopParts() {
+  const lines = getShopActiveLines();
+  return `<div class="page"><div class="page-header"><h1 class="page-title">Record New Parts</h1><p class="page-subtitle">Shop TL · Records are timestamped and linked to an active launched PO</p></div>
+    <div class="grid-2"><div class="overview-panel"><h2 style="margin-bottom:16px">New piece record</h2><div class="form-group"><label class="form-label">PO / launched FGPN *</label><select class="form-input form-select" id="shop-line">${lines.map(line=>`<option value="${line.poId}__${line.fgpn}">${line.poId} · ${line.fgpn} · ${line.desc}</option>`).join('')}</select></div><div class="grid-2"><div class="form-group"><label class="form-label">Part number *</label><input class="form-input" id="shop-part-number" placeholder="PCS-000-000"></div><div class="form-group"><label class="form-label">Quantity *</label><input class="form-input" id="shop-part-qty" type="number" min="1" value="1"></div></div><div class="form-group"><label class="form-label">Description *</label><input class="form-input" id="shop-part-description" placeholder="Piece description"></div><button class="btn btn-primary" style="width:100%;justify-content:center" onclick="actionRecordShopPart()">Save piece record</button></div>
+    <div class="overview-panel"><h2 style="margin-bottom:16px">Recent records</h2><div class="table-wrap"><table><thead><tr><th>Record</th><th>PO / FGPN</th><th>Part</th><th>Qty</th><th>Recorded</th></tr></thead><tbody>${state.shopParts.map(record=>`<tr><td class="fw-600">${record.id}</td><td>${record.poId}<div class="text-xs">${record.fgpn}</div></td><td><code>${record.partNumber}</code><div class="text-xs">${record.description}</div></td><td>${record.qty}</td><td>${record.recordedAt}<div class="text-xs">${record.recordedBy}</div></td></tr>`).join('')}</tbody></table></div></div></div></div>`;
+}
+
+function actionRecordShopPart() {
+  const selection = document.getElementById('shop-line')?.value || '';
+  const [poId, fgpn] = selection.split('__');
+  const partNumber = document.getElementById('shop-part-number')?.value.trim();
+  const description = document.getElementById('shop-part-description')?.value.trim();
+  const qty = Number(document.getElementById('shop-part-qty')?.value);
+  if (!poId || !fgpn || !partNumber || !description || !Number.isFinite(qty) || qty <= 0) { alert('PO, FGPN, part number, description, and a positive quantity are required.'); return; }
+  const id = `SHOP-${String(state.shopParts.length + 1).padStart(3,'0')}`;
+  state.shopParts.unshift({id,poId,fgpn,partNumber,description,qty,recordedBy:'Samir El Idrissi',recordedAt:_extNow()});
+  if (typeof logAudit === 'function') logAudit(`Shop piece recorded ${id}`, '', `${poId} · ${fgpn} · ${partNumber} · ${qty} u`, 'Shop TL production record');
+  renderPageContent();
+}
+
+function showAddSubPOModal(poId) {
+  const po = state.pos.find(item => item.id === poId);
+  if (!po || !requireProjectWriteAccess(po.project)) return;
+  const nextLetter = String.fromCharCode(65 + (po.subPOs || []).length);
+  document.getElementById('modal-content').innerHTML = `<div class="modal-header"><div><h3 class="modal-title">Add Sub-PO</h3><div class="text-xs" style="margin-top:4px">Parent ${po.id} · Parent quantity ${po.qty} u</div></div><button class="modal-close" onclick="closeModal()">×</button></div><div class="form-group"><label class="form-label">Sub-PO reference *</label><input class="form-input" id="subpo-id" value="${po.id}-${nextLetter}"></div><div class="form-group"><label class="form-label">Quantity *</label><input class="form-input" id="subpo-qty" type="number" min="1" value="1"></div><button class="btn btn-primary" style="width:100%;justify-content:center" onclick="actionSaveSubPO('${po.id}')">Create Sub-PO</button>`;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function actionSaveSubPO(poId) {
+  const po = state.pos.find(item => item.id === poId);
+  const id = document.getElementById('subpo-id')?.value.trim();
+  const qty = Number(document.getElementById('subpo-qty')?.value);
+  if (!po || !requireProjectWriteAccess(po.project)) return;
+  if (!id || !Number.isFinite(qty) || qty <= 0) { alert('A sub-PO reference and positive quantity are required.'); return; }
+  if (state.pos.some(item=>item.id===id) || state.pos.some(item=>(item.subPOs||[]).some(sub=>sub.id===id))) { alert('This PO or Sub-PO reference already exists.'); return; }
+  const allocated = (po.subPOs || []).reduce((sum, sub) => sum + Number(sub.qty || 0), 0);
+  if (allocated + qty > po.qty) { alert(`Sub-PO quantities cannot exceed the parent quantity. ${po.qty - allocated} units remain available.`); return; }
+  po.subPOs = po.subPOs || [];
+  po.subPOs.push({id,qty,status:'Open'});
+  if (typeof logAudit === 'function') logAudit(`Sub-PO created ${id}`, poId, `${qty} u`, 'Linked to immutable parent PO record');
+  closeModal();
+  renderPageContent();
+}
+
 //  FUNCTIONAL ACTIONS & POPUPS ENGINE
 // ══════════════════════════════════════════════
 
@@ -4370,6 +4675,7 @@ function showAddUserModal() {
         <option value="Plant Manager">Plant Manager</option>
         <option value="Launch Engineer">Launch Engineer</option>
         <option value="Launch Manager">Launch Manager</option>
+        <option value="Shop TL">Shop TL</option>
         <option value="WH Team Leader">WH Team Leader</option>
         <option value="WH Personnel">WH Personnel</option>
       </select>
@@ -4417,6 +4723,7 @@ function showEditUserModal(username) {
       <select class="form-input form-select" id="edit-user-role">
         <option value="Launch Engineer" ${user.role==='Launch Engineer'?'selected':''}>Launch Engineer</option>
         <option value="Launch Manager" ${user.role==='Launch Manager'?'selected':''}>Launch Manager</option>
+        <option value="Shop TL" ${user.role==='Shop TL'?'selected':''}>Shop TL</option>
         <option value="WH Team Leader" ${user.role==='WH Team Leader'?'selected':''}>WH Team Leader</option>
         <option value="WH Personnel" ${user.role==='WH Personnel'?'selected':''}>WH Personnel</option>
         <option value="Plant Manager" ${user.role==='Plant Manager'?'selected':''}>Plant Manager</option>
@@ -4549,7 +4856,7 @@ function getReferenceUsage(tab, item) {
   if (tab === 'fgpn') return state.pos.filter(p=>p.fgpn===item.code || p.parts?.some(part=>part.fgpn===item.code)).length;
   if (tab === 'receivers') return state.whDeliveries.filter(d=>d.receiver===item.label || d.receiver?.includes(item.label.split(' (')[0])).length;
   if (tab === 'shipments') return state.deliveries.filter(d=>d.method===item.code).length;
-  if (tab === 'materials') return state.stock.filter(s=>s.id.startsWith(item.code)).length + state.bomMappings.filter(m=>m.component.startsWith(item.code)).length;
+  if (tab === 'materials') return state.stock.filter(s=>s.id.startsWith(item.code)).length + (state.bomData || []).filter(m=>m.component.startsWith(item.code)).length;
   return 0;
 }
 
@@ -4812,7 +5119,7 @@ function renderPODetailPage(poId, project) {
       <div class="page-header flex-between" style="margin-bottom:24px">
         <div>
           <h1 class="page-title">${po.id}</h1>
-          <p class="page-subtitle">Project ${project.name} · Client ${po.client} · Wk. ${po.week}</p>
+          <p class="page-subtitle">Project ${project.name} · Client ${po.client} · Wk. ${po.week} · Stock code ${po.stockCode || '-'}</p>
         </div>
         <div class="flex gap-8" style="align-items:center; flex-wrap:wrap; justify-content:flex-end">
           <span class="badge ${po.status==='Unplanned'?'grey':po.status==='In Progress'?'blue':po.status==='Done'||po.status==='Packaged'?'orange':'green'}" style="font-size:13px; padding:6px 14px">${po.status}</span>
@@ -4823,8 +5130,9 @@ function renderPODetailPage(poId, project) {
 
       <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
         <div class="kpi-card" style="--kpi-color: var(--accent)">
-          <div class="kpi-label">Total Quantity</div>
+          <div class="kpi-label">Total / Part Numbers</div>
           <div class="kpi-value">${po.qty} u</div>
+          <div class="kpi-delta neutral">${parts.length} part number${parts.length===1?'':'s'}</div>
         </div>
         <div class="kpi-card" style="--kpi-color: var(--green)">
           <div class="kpi-label">Launched</div>
@@ -4840,6 +5148,8 @@ function renderPODetailPage(poId, project) {
           <div class="kpi-value">${po.price.toLocaleString()} €</div>
         </div>
       </div>
+
+      ${(po.subPOs || []).length ? `<div class="overview-panel" style="margin-bottom:24px"><div class="flex-between" style="margin-bottom:12px"><h2>Sub-POs</h2>${canEditProject(project)?`<button class="btn btn-outline" onclick="showAddSubPOModal('${po.id}')">Add Sub-PO</button>`:''}</div><div class="table-wrap"><table><thead><tr><th>Sub-PO</th><th>Quantity</th><th>Status</th><th>Parent</th></tr></thead><tbody>${po.subPOs.map(sub=>`<tr><td class="fw-600">${sub.id}</td><td>${sub.qty} u</td><td><span class="badge ${sub.status==='Completed'?'green':sub.status==='Launched'?'blue':'grey'}">${sub.status}</span></td><td>${po.id}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
 
       <div class="card" style="margin-bottom:24px">
         <h2 class="card-title">References (Part Numbers)</h2>
@@ -5719,16 +6029,23 @@ function actionValidateLaunchMeeting() {
     return;
   }
 
+  const launchedPoIds = new Set();
   launch.lines.forEach(line => {
     const po = state.pos.find(item => item.id === line.poId);
     if (!po) return;
+    const previousStatus = po.status;
     const part = (po.parts || []).find(item => item.fgpn === line.fgpn);
     if (part) part.launched = Math.min(part.qty, part.launched + line.qty);
     po.launchedQty = (po.parts || []).reduce((sum, item) => sum + item.launched, 0);
     po.status = 'In Progress';
     po.hasPV = true;
+    if (!launchedPoIds.has(po.id) && previousStatus !== 'In Progress') {
+      state.poStatusHistory.push({ poId:po.id, from:previousStatus, to:'In Progress', reason:`Approved launch ${line.qty} u with meeting minutes ${launch.pvFile}`, user:currentActor==='lm'?'Karim Benali':'Ahmed Rami', dt:_extNow(), type:'forward' });
+    }
+    launchedPoIds.add(po.id);
     delete state.launchSimQty[po.id + '__' + line.fgpn];
   });
+  syncProjectProgress(launch.projectId);
   launch.finalizedAt = new Date().toLocaleString('en-GB');
   state.launchSelectedPOs = [];
   if (typeof logAudit === 'function') logAudit('Launch approved and finalized', 'feasible', 'approved', launch.pvFile);
@@ -5878,6 +6195,7 @@ function actionReadyToGo(poId) {
       pt.launched = Math.min(pt.qty, pt.launched + qty);
     });
     po.launchedQty = parts.reduce((s, pt) => s + pt.launched, 0);
+    syncProjectProgress(po.project);
     if (typeof logAudit === 'function') logAudit('LAUNCH_PO', poId + ' launched into production');
     renderPageContent();
   });
@@ -5945,6 +6263,7 @@ function actionSaveExtractedPO() {
       project: projectId,
       client,
       fgpn,
+      stockCode: `STK-${client.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()}-${newPoId.replace(/\D/g,'').slice(-3)}`,
       qty,
       week: state.pendingPOExtraction.week,
       status: 'Unplanned',
@@ -5953,6 +6272,7 @@ function actionSaveExtractedPO() {
       launchedQty: 0,
       originalPdf: extracted.sourcePdf,
       extractionStatus: 'Validated with user review',
+      subPOs: [],
       parts: extracted.parts.map(part => ({ fgpn: part.fgpn, desc: part.desc, qty: part.qty, launched: 0 }))
     });
     state.poVersions[newPoId] = [{ version: 1, filename: extracted.sourcePdf, uploadedAt: _extNow(), uploadedBy: currentActor === 'lm' ? 'Karim Benali' : 'Ahmed Rami', qty, week: extracted.week, price, status: 'Active - immutable' }];
@@ -6730,12 +7050,16 @@ function actionGenerateProjectAudit(projectId) {
 }
 
 function showAddProjectModal() {
+  if (!['admin', 'lm'].includes(currentActor)) {
+    alert('Only Launch Managers and System Administrators can create projects.');
+    return;
+  }
   showProjectFormModal(null);
 }
 
 function showEditProjectModal(projectId) {
   const project = state.projects.find(p => p.id === projectId);
-  if (!project || !requireProjectWriteAccess(projectId)) return;
+  if (!project || !requireProjectMasterAccess(projectId)) return;
   showProjectFormModal(project);
 }
 
@@ -6788,10 +7112,10 @@ function showProjectFormModal(project) {
     <div class="grid-2">
       <div class="form-group">
         <label class="form-label">Launch Engineer *</label>
-        <select class="form-input form-select" id="project-engineer" ${currentActor === 'le' ? 'disabled' : ''}>
+        <select class="form-input form-select" id="project-engineer" ${(isEditing || currentActor === 'le') ? 'disabled' : ''}>
           ${engineers.map(u => `<option value="${u.name}" ${u.name === (project?.engineer || defaultEngineer) ? 'selected' : ''}>${u.name}</option>`).join('')}
         </select>
-        ${currentActor === 'le' ? `<div class="text-xs" style="margin-top:5px">New projects are assigned to you automatically.</div>` : ''}
+        ${isEditing ? `<div class="text-xs" style="margin-top:5px">The assigned engineer is locked during project editing. Administrators manage assignments separately.</div>` : currentActor === 'le' ? `<div class="text-xs" style="margin-top:5px">New projects are assigned to you automatically.</div>` : ''}
       </div>
       <div class="form-group">
         <label class="form-label">Launch Manager *</label>
@@ -6815,7 +7139,8 @@ function actionSaveProject(existingId) {
   const name = document.getElementById('project-name').value.trim();
   const client = document.getElementById('project-client').value;
   const status = document.getElementById('project-status').value;
-  const engineer = currentActor === 'le' ? 'Ahmed Rami' : document.getElementById('project-engineer').value;
+  const existingProject = existingId ? state.projects.find(p => p.id === existingId) : null;
+  const engineer = existingProject ? existingProject.engineer : currentActor === 'le' ? 'Ahmed Rami' : document.getElementById('project-engineer').value;
   const manager = currentActor === 'lm' ? 'Karim Benali' : document.getElementById('project-manager').value;
   if (!name || !client || !engineer || !manager) {
     alert('Project name, customer, Launch Engineer, and Launch Manager are required.');
@@ -6823,13 +7148,17 @@ function actionSaveProject(existingId) {
   }
 
   if (existingId) {
-    if (!requireProjectWriteAccess(existingId)) return;
-    const project = state.projects.find(p => p.id === existingId);
+    if (!requireProjectMasterAccess(existingId)) return;
+    const project = existingProject;
     if (!project) return;
     const before = `${project.name} | ${project.client} | ${project.status} | ${project.engineer} | ${project.manager}`;
     Object.assign(project, { name, client, status, engineer, manager });
     logAudit(`Project updated ${existingId}`, before, `${name} | ${client} | ${status} | ${engineer} | ${manager}`, 'Owner-authorized project update');
   } else {
+    if (!['admin', 'lm'].includes(currentActor)) {
+      alert('Only Launch Managers and System Administrators can create projects.');
+      return;
+    }
     const project = { id, name, client, status, engineer, manager, pos: 0 };
     if (!canEditProject(project)) {
       alert('A new project must be assigned to you.');
@@ -6846,7 +7175,7 @@ function actionSaveProject(existingId) {
 }
 
 function actionDeleteProject(projectId) {
-  if (!requireProjectWriteAccess(projectId)) return;
+  if (!requireProjectMasterAccess(projectId)) return;
   const project = state.projects.find(p => p.id === projectId);
   if (!project) return;
   const linkedPOs = state.pos.filter(po => po.project === projectId);
@@ -6920,6 +7249,7 @@ function actionAdvancePOStatus(poId) {
   }
   const previous = po.status;
   po.status = next;
+  syncProjectProgress(po.project);
   const user = currentActor === 'lm' ? 'Karim Benali' : 'Ahmed Rami';
   state.poStatusHistory.push({ poId, from: previous, to: next, reason: 'Authorized forward workflow transition', user, dt: _extNow(), type: 'forward' });
   logAudit(`PO status advanced ${poId}`, previous, next, 'Sequential workflow transition');
@@ -7225,6 +7555,7 @@ function actionSaveDeliveryConfirmation(delId) {
         po.status = 'Delivered';
         state.poStatusHistory.push({ poId: po.id, from: previous, to: 'Delivered', reason: `Cumulative confirmed delivery reached ${confirmedQty}/${po.qty} units`, user: currentActor === 'lm' ? 'Karim Benali' : 'Ahmed Rami', dt: _extNow(), type: 'forward' });
       }
+      syncProjectProgress(po.project);
     }
     logAudit(`Delivery confirmed ${delId}`, 'Pending', 'Delivered', `${del.qty} u · ${method} · ${confirmingPerson} · ${attachment}`);
     renderPageContent();
