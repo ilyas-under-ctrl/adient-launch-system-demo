@@ -357,6 +357,7 @@
   <button class="actor-btn" onclick="switchActor('lm', this)">Launch Manager</button>
   <button class="actor-btn active" onclick="switchActor('le', this)">Launch Engineer</button>
   <button class="actor-btn" onclick="switchActor('shop', this)">Shop TL</button>
+  <button class="actor-btn" onclick="switchActor('packager', this)">Packager</button>
   <button class="actor-btn" onclick="switchActor('wtl', this)">Warehouse TL</button>
   <button class="actor-btn" onclick="switchActor('wp', this)">Warehouse Personnel</button>
 </div>
@@ -414,7 +415,8 @@ const state = {
     { name: 'Nadia Wafa', username: 'n.wafa', role: 'WH Team Leader', projects: 0, status: 'active' },
     { name: 'Jacques Terrier', username: 'j.terrier', role: 'Plant Manager', projects: 0, status: 'active' },
     { name: 'Farid Korichi', username: 'f.korichi', role: 'Launch Engineer', projects: 1, status: 'inactive' },
-    { name: 'Samir El Idrissi', username: 's.elidrissi', role: 'Shop TL', projects: 0, status: 'active' }
+    { name: 'Samir El Idrissi', username: 's.elidrissi', role: 'Shop TL', projects: 0, status: 'active' },
+    { name: 'Lina Zahra', username: 'l.zahra', role: 'Packager', projects: 0, status: 'active' }
   ],
   projects: [
     { id: 'PRJ-001', name: 'BMW Group Series 7', client: 'BMW Group', pos: 3, status: 'In Progress', engineer: 'Ahmed Rami', manager: 'Karim Benali' },
@@ -471,11 +473,11 @@ const state = {
     { id: 'DEL-2024-015', project: 'PRJ-001', po: 'PO-2024-021', fgpn: 'BMW-S7-001', description: 'Front Left Seat', client: 'BMW Group', qty: 75, method: 'Camion', transportCost: 380, date: '02/07', week: 27, status: 'Delivered', unitPrice: 60, value: 4500, confirmationDate: '02/07 15:30', confirmationMethod: 'Signed delivery note', confirmer: 'Marc Dupuy', proof: 'signed_delivery_DEL-2024-015.pdf' }
   ],
   whDeliveries: [
-    { id: 'LAU-2024-06', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:30},{poId:'PO-2024-018',fgpn:'BMW-S7-001-R',desc:'Front Right Seat',qty:20}], code: 'K7-2F9', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:60},{id:'THR-11',desc:'Black Sewing Thread',qty:18}], status: 'signed_pending', productionStatus:'In Progress', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_06.pdf', uploader: 'Nadia Wafa', timestamp: '08/07 08:30', requiredDeliveryLabel:'08/07/2026 10:00', receiver: 'Sigma Moussa', expiresLabel:'10/07/2026 08:30', used:false },
-    { id: 'LAU-2024-05', project: 'PRJ-001', poIds: ['PO-2024-019'], launchItems: [{poId:'PO-2024-019',fgpn:'BMW-S7-002',desc:'Leather Headrest',qty:120}], code: 'A3-9G1', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:180},{id:'ROL-07',desc:'Foam Roll',qty:96}], status: 'validated', productionStatus:'Done', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_05.pdf', uploader: 'Nadia Wafa', timestamp: '07/07 14:00', requiredDeliveryLabel:'07/07/2026 16:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-05.pdf', used:true },
-    { id: 'LAU-2024-07', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:50}], code: null, matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:100},{id:'THR-11',desc:'Black Sewing Thread',qty:30}], status: 'planned', productionStatus:'Planned', meetingDecision:'pending', meetingMinutesFile:null, uploader: null, timestamp: '14/07 09:00', receiver: null },
-    { id: 'LAU-2024-08', project: 'PRJ-002', poIds: ['PO-2024-020'], launchItems: [{poId:'PO-2024-020',fgpn:'VW-TIG-003',desc:'Rear Backrest Assembly',qty:70},{poId:'PO-2024-020',fgpn:'VW-TIG-003-L',desc:'Rear Lumbar Support',qty:30}], code: 'Q5-8TR', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:194},{id:'FBR-01',desc:'Fiberglass',qty:114}], status: 'validated', productionStatus:'Done', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_08.pdf', uploader: 'Nadia Wafa', timestamp: '18/07 10:00', requiredDeliveryLabel:'18/07/2026 12:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-08.pdf', used:true },
-    { id: 'LAU-2024-04', project: 'PRJ-001', poIds: ['PO-2024-021'], launchItems: [{poId:'PO-2024-021',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:75}], code: 'D4-6KM', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:150},{id:'THR-11',desc:'Black Sewing Thread',qty:45}], status: 'validated', productionStatus:'Done', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_04.pdf', uploader: 'Nadia Wafa', timestamp: '01/07 09:20', requiredDeliveryLabel:'01/07/2026 12:00', receiver: 'Sigma Moussa', signedFile:'reception_LAU-2024-04.pdf', used:true }
+    { id: 'LAU-2024-06', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:30},{poId:'PO-2024-018',fgpn:'BMW-S7-001-R',desc:'Front Right Seat',qty:20}], code: 'K7-2F9', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:60},{id:'THR-11',desc:'Black Sewing Thread',qty:18}], status: 'signed_pending', productionStatus:'In Progress', packagingStatus:'Waiting Production', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_06.pdf', uploader: 'Nadia Wafa', timestamp: '08/07 08:30', requiredDeliveryLabel:'08/07/2026 10:00', receiver: 'Sigma Moussa', expiresLabel:'10/07/2026 08:30', used:false },
+    { id: 'LAU-2024-05', project: 'PRJ-001', poIds: ['PO-2024-019'], launchItems: [{poId:'PO-2024-019',fgpn:'BMW-S7-002',desc:'Leather Headrest',qty:120}], code: 'A3-9G1', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:180},{id:'ROL-07',desc:'Foam Roll',qty:96}], status: 'validated', productionStatus:'Done', packagingStatus:'In Progress', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_05.pdf', uploader: 'Nadia Wafa', timestamp: '07/07 14:00', requiredDeliveryLabel:'07/07/2026 16:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-05.pdf', used:true },
+    { id: 'LAU-2024-07', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:50}], code: null, matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:100},{id:'THR-11',desc:'Black Sewing Thread',qty:30}], status: 'planned', productionStatus:'Planned', packagingStatus:'Waiting Production', meetingDecision:'pending', meetingMinutesFile:null, uploader: null, timestamp: '14/07 09:00', receiver: null },
+    { id: 'LAU-2024-08', project: 'PRJ-002', poIds: ['PO-2024-020'], launchItems: [{poId:'PO-2024-020',fgpn:'VW-TIG-003',desc:'Rear Backrest Assembly',qty:70},{poId:'PO-2024-020',fgpn:'VW-TIG-003-L',desc:'Rear Lumbar Support',qty:30}], code: 'Q5-8TR', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:194},{id:'FBR-01',desc:'Fiberglass',qty:114}], status: 'validated', productionStatus:'Done', packagingStatus:'Packaged', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_08.pdf', uploader: 'Nadia Wafa', timestamp: '18/07 10:00', requiredDeliveryLabel:'18/07/2026 12:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-08.pdf', used:true },
+    { id: 'LAU-2024-04', project: 'PRJ-001', poIds: ['PO-2024-021'], launchItems: [{poId:'PO-2024-021',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:75}], code: 'D4-6KM', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:150},{id:'THR-11',desc:'Black Sewing Thread',qty:45}], status: 'validated', productionStatus:'Done', packagingStatus:'Packaged', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_04.pdf', uploader: 'Nadia Wafa', timestamp: '01/07 09:20', requiredDeliveryLabel:'01/07/2026 12:00', receiver: 'Sigma Moussa', signedFile:'reception_LAU-2024-04.pdf', used:true }
   ],
   refJit: [
     { label: 'BMW Group', code: 'BMW', status: 'active' },
@@ -597,6 +599,12 @@ state.shopParts = [
   { id:'SHOP-001', launchId:'LAU-2024-05', poId:'PO-2024-019', fgpn:'BMW-S7-002', partNumber:'PCS-HD-442', description:'Leather Headrest', qty:120, recordedBy:'Samir El Idrissi', recordedAt:'08/07 13:20' },
   { id:'SHOP-002', launchId:'LAU-2024-06', poId:'PO-2024-018', fgpn:'BMW-S7-001', partNumber:'PCS-FL-001', description:'Front Left Seat', qty:30, recordedBy:'Samir El Idrissi', recordedAt:'08/07 14:10' },
   { id:'SHOP-003', launchId:'LAU-2024-06', poId:'PO-2024-018', fgpn:'BMW-S7-001-R', partNumber:'PCS-FR-001', description:'Front Right Seat', qty:20, recordedBy:'Samir El Idrissi', recordedAt:'08/07 14:15' }
+];
+state.packageRecords = [
+  { id:'PKG-001', launchId:'LAU-2024-05', poId:'PO-2024-019', fgpn:'BMW-S7-002', qty:120, packageType:'Protected pallet', recordedBy:'Lina Zahra', recordedAt:'08/07 16:10' },
+  { id:'PKG-002', launchId:'LAU-2024-08', poId:'PO-2024-020', fgpn:'VW-TIG-003', qty:70, packageType:'Returnable rack', recordedBy:'Lina Zahra', recordedAt:'18/07 14:20' },
+  { id:'PKG-003', launchId:'LAU-2024-08', poId:'PO-2024-020', fgpn:'VW-TIG-003-L', qty:30, packageType:'Returnable rack', recordedBy:'Lina Zahra', recordedAt:'18/07 14:25' },
+  { id:'PKG-004', launchId:'LAU-2024-04', poId:'PO-2024-021', fgpn:'BMW-S7-001', qty:75, packageType:'Protected pallet', recordedBy:'Lina Zahra', recordedAt:'01/07 15:00' }
 ];
 
 // ══════════════════════════════════════════════
@@ -863,6 +871,17 @@ const actors = {
       'shop-parts': renderShopParts
     }
   },
+  packager: {
+    nav: [
+      { s: 'Packaging' },
+      { id: 'packager-dash', icon: 'home', label: 'Packaging Overview' },
+      { id: 'packager-records', icon: 'list', label: 'Record Packaging' }
+    ],
+    pages: {
+      'packager-dash': renderPackagerDash,
+      'packager-records': renderPackagerRecords
+    }
+  },
   wtl: {
     nav: [
       { s: 'Material Flow' },
@@ -967,6 +986,7 @@ function renderAdminDash() {
           ${rRoleBar('Launch Manager', state.users.filter(u=>u.role==='Launch Manager').length, 'var(--accent)')}
           ${rRoleBar('Launch Engineer', state.users.filter(u=>u.role==='Launch Engineer').length, 'var(--green)')}
           ${rRoleBar('Shop TL', state.users.filter(u=>u.role==='Shop TL').length, 'var(--orange)')}
+          ${rRoleBar('Packager', state.users.filter(u=>u.role==='Packager').length, 'var(--purple)')}
           ${rRoleBar('WH Team Leader', state.users.filter(u=>u.role==='WH Team Leader').length, 'var(--orange)')}
           ${rRoleBar('WH Personnel', state.users.filter(u=>u.role==='WH Personnel').length, 'var(--gold)')}
         </div>
@@ -2004,11 +2024,12 @@ function derivePOStatus(po) {
   const confirmedQty = shipments.filter(item => item.status === 'Delivered').reduce((sum, item) => sum + Number(item.qty || 0), 0);
   const launchedQty = Number(po.launchedQty || 0);
   const fullyLaunched = launchedQty >= Number(po.qty || 0);
-  const relevantLaunches = launches.filter(launch => (launch.launchItems || []).some(item => item.poId === po.id && item.qty > 0));
+  const relevantLaunches = launches.filter(launch => launch.meetingDecision === 'approved' && (launch.launchItems || []).some(item => item.poId === po.id && item.qty > 0));
   const warehouseVerified = relevantLaunches.length > 0 && relevantLaunches.every(launch => launch.status === 'validated' && launch.signedFile);
   const productionComplete = relevantLaunches.length > 0 && relevantLaunches.every(launch => launch.productionStatus === 'Done');
+  const packagingComplete = relevantLaunches.length > 0 && relevantLaunches.every(launch => launch.packagingStatus === 'Packaged');
   if (confirmedQty >= po.qty) return 'Delivered';
-  if (fullyLaunched && productionComplete && warehouseVerified && shipments.some(item => item.status !== 'Delivered')) return 'Packaged';
+  if (fullyLaunched && productionComplete && warehouseVerified && packagingComplete) return 'Packaged';
   if (fullyLaunched && productionComplete && warehouseVerified) return 'Done';
   if (launchedQty > 0 || relevantLaunches.some(launch => launch.meetingDecision === 'approved')) return 'In Progress';
   return 'Unplanned';
@@ -2019,12 +2040,14 @@ function getPOStatusEvidence(po) {
   const shipments = getPoShipments(po.id);
   const approved = launches.filter(launch => launch.meetingDecision === 'approved').length;
   const productionDone = launches.filter(launch => launch.productionStatus === 'Done').length;
+  const packaged = launches.filter(launch => launch.packagingStatus === 'Packaged').length;
   const verified = launches.filter(launch => launch.status === 'validated' && launch.signedFile).length;
   const confirmedQty = shipments.filter(item => item.status === 'Delivered').reduce((sum, item) => sum + Number(item.qty || 0), 0);
   return [
     { label:'Launch approval', value:`${approved}/${launches.length} launches approved`, ok:approved>0 },
     { label:'Production scope', value:`${po.launchedQty||0}/${po.qty} units launched`, ok:Number(po.launchedQty||0)>=po.qty },
     { label:'Shop TL completion', value:`${productionDone}/${launches.length} launches done`, ok:launches.length>0&&productionDone===launches.length },
+    { label:'Packaging completion', value:`${packaged}/${launches.length} launches packaged`, ok:launches.length>0&&packaged===launches.length },
     { label:'Warehouse verification', value:`${verified}/${launches.length} signed transfers validated`, ok:launches.length>0&&verified===launches.length },
     { label:'Customer delivery', value:`${confirmedQty}/${po.qty} units confirmed`, ok:confirmedQty>=po.qty }
   ];
@@ -2052,6 +2075,7 @@ function renderLaunchAccordions(poId) {
         <div class="text-xs" style="margin-top:5px"><strong>Meeting:</strong> ${launch.meetingDecision==='approved'?'Approved':'Pending'} · ${launch.meetingMinutesFile||launch.pvFile||'No meeting minutes uploaded'}</div>
         <div class="text-xs" style="margin-top:5px"><strong>Warehouse code:</strong> <code>${codeState}</code>${launch.expiresLabel?` · valid until ${launch.expiresLabel}`:''}</div>
         <div class="text-xs" style="margin-top:5px"><strong>Production:</strong> ${launch.productionStatus||'Planned'} · controlled by Shop TL</div>
+        <div class="text-xs" style="margin-top:5px"><strong>Packaging:</strong> ${launch.packagingStatus||'Waiting Production'} · controlled by Packager</div>
         <div class="text-xs" style="margin-top:5px"><strong>Warehouse:</strong> ${launchStatusLabel(launch.status)} · Receiver ${launch.receiver||'not selected'} · ${launch.signedFile||'signed reception pending'}</div>
       </div>
     </details>`;
@@ -4710,11 +4734,57 @@ function actionCompleteShopLaunch(launchId) {
   const incomplete = (launch.launchItems||[]).filter(line=>getShopRecordedQty(launchId,line.poId,line.fgpn)<Number(line.qty||0));
   if (incomplete.length) { alert(`Cannot mark ${launchId} Done. Complete: ${incomplete.map(line=>`${line.poId} / ${line.fgpn} (${Number(line.qty||0)-getShopRecordedQty(launchId,line.poId,line.fgpn)} u missing)`).join(', ')}.`); return; }
   launch.productionStatus = 'Done';
+  launch.packagingStatus = 'In Progress';
   launch.completedBy = 'Samir El Idrissi';
   launch.completedAt = _extNow();
   if (typeof logAudit === 'function') logAudit(`Launch production completed ${launchId}`, 'In Progress', 'Done', 'All launch quantities recorded by Shop TL');
   syncProjectProgress(launch.project);
   renderPageContent();
+}
+
+function getPackagerLaunches() {
+  return state.whDeliveries.filter(launch => launch.productionStatus === 'Done' && ['In Progress','Packaged'].includes(launch.packagingStatus));
+}
+
+function getPackagedQty(launchId, poId, fgpn) {
+  return state.packageRecords.filter(record => record.launchId === launchId && record.poId === poId && record.fgpn === fgpn).reduce((sum, record) => sum + Number(record.qty || 0), 0);
+}
+
+function getPackagerLines() {
+  return getPackagerLaunches().flatMap(launch => (launch.launchItems || []).map(item => {
+    const packaged = getPackagedQty(launch.id,item.poId,item.fgpn);
+    return {...item,launchId:launch.id,project:launch.project,packagingStatus:launch.packagingStatus,packaged,remaining:Math.max(0,Number(item.qty||0)-packaged)};
+  }));
+}
+
+function renderPackagerDash() {
+  const launches=getPackagerLaunches(); const lines=getPackagerLines();
+  return `<div class="page"><div class="page-header"><h1 class="page-title">Packaging Launch Control</h1><p class="page-subtitle">Packager owns launch completion from Done to Packaged</p></div>
+    <div class="metric-strip"><div class="metric-cell"><span>Awaiting packaging</span><strong>${launches.filter(item=>item.packagingStatus==='In Progress').length}</strong></div><div class="metric-cell"><span>Packaged launches</span><strong>${launches.filter(item=>item.packagingStatus==='Packaged').length}</strong></div><div class="metric-cell"><span>Units packaged</span><strong>${state.packageRecords.reduce((sum,item)=>sum+Number(item.qty||0),0)}</strong></div><div class="metric-cell"><span>Units remaining</span><strong>${lines.reduce((sum,item)=>sum+item.remaining,0)}</strong></div></div>
+    <div class="overview-panel"><div class="flex-between" style="margin-bottom:12px"><div><h2>Launch packaging status</h2><div class="text-xs" style="margin-top:4px">Only launches marked Done by Shop TL appear here.</div></div><button class="btn btn-primary" onclick="navigateTo('packager-records')">Record packaging</button></div><div class="table-wrap"><table><thead><tr><th>Launch</th><th>Project</th><th>PO / FGPN scope</th><th>Target</th><th>Packaged</th><th>Status</th><th>Verification</th></tr></thead><tbody>${launches.map(launch=>{const launchLines=lines.filter(line=>line.launchId===launch.id);const target=launchLines.reduce((sum,line)=>sum+Number(line.qty||0),0);const packaged=launchLines.reduce((sum,line)=>sum+Math.min(line.packaged,Number(line.qty||0)),0);const missing=Math.max(0,target-packaged);const ready=missing===0;return `<tr><td class="fw-600">${launch.id}</td><td>${launch.project}</td><td>${launchLines.map(line=>`${line.poId} · <code>${line.fgpn}</code> · ${line.qty}u`).join('<br>')}</td><td>${target} u</td><td>${packaged} u</td><td><span class="badge ${launch.packagingStatus==='Packaged'?'green':'orange'}">${launch.packagingStatus}</span>${launch.packagedAt?`<div class="text-xs" style="margin-top:4px">${launch.packagedAt} · ${launch.packagedBy}</div>`:''}</td><td>${launch.packagingStatus==='Packaged'?`<span class="badge green">Packaging verified</span>`:`<button class="btn ${ready?'btn-primary':'btn-outline'}" ${ready?'':'disabled'} onclick="actionCompletePackaging('${launch.id}')">Mark Packaged</button><div class="text-xs" style="margin-top:5px">${ready?'All quantities packaged':`${missing} u still missing`}</div>`}</td></tr>`;}).join('')}</tbody></table></div></div></div>`;
+}
+
+function renderPackagerRecords() {
+  const lines=getPackagerLines().filter(line=>line.packagingStatus==='In Progress'&&line.remaining>0);
+  return `<div class="page"><div class="page-header"><h1 class="page-title">Record Packaged Quantities</h1><p class="page-subtitle">Packager · Every quantity is linked to a specific launch, PO, and FGPN</p></div><div class="grid-2"><div class="overview-panel"><h2 style="margin-bottom:16px">New packaging record</h2><div class="form-group"><label class="form-label">Launch / PO / FGPN *</label><select class="form-input form-select" id="package-line">${lines.map(line=>`<option value="${line.launchId}__${line.poId}__${line.fgpn}">${line.launchId} · ${line.poId} · ${line.fgpn} · ${line.remaining}u remaining</option>`).join('')}</select></div><div class="grid-2"><div class="form-group"><label class="form-label">Package type *</label><select class="form-input form-select" id="package-type"><option>Protected pallet</option><option>Returnable rack</option><option>Box</option><option>Container</option></select></div><div class="form-group"><label class="form-label">Packaged quantity *</label><input class="form-input" id="package-qty" type="number" min="1" value="1"></div></div><button class="btn btn-primary" style="width:100%;justify-content:center" onclick="actionRecordPackaging()" ${lines.length?'':'disabled'}>Save packaging record</button>${lines.length?'':`<div class="alert-band blue" style="margin-top:12px"><span>No incomplete packaging quantities remain.</span></div>`}</div><div class="overview-panel"><h2 style="margin-bottom:16px">Packaging records</h2><div class="table-wrap"><table><thead><tr><th>Record</th><th>Launch</th><th>PO / FGPN</th><th>Type</th><th>Qty</th><th>Recorded</th></tr></thead><tbody>${state.packageRecords.map(record=>`<tr><td class="fw-600">${record.id}</td><td>${record.launchId}</td><td>${record.poId}<div class="text-xs">${record.fgpn}</div></td><td>${record.packageType}</td><td>${record.qty}</td><td>${record.recordedAt}<div class="text-xs">${record.recordedBy}</div></td></tr>`).join('')}</tbody></table></div></div></div></div>`;
+}
+
+function actionRecordPackaging() {
+  const selection=document.getElementById('package-line')?.value||''; const [launchId,poId,fgpn]=selection.split('__');
+  const packageType=document.getElementById('package-type')?.value; const qty=Number(document.getElementById('package-qty')?.value);
+  const launch=state.whDeliveries.find(item=>item.id===launchId&&item.productionStatus==='Done'&&item.packagingStatus==='In Progress');
+  const line=launch?.launchItems?.find(item=>item.poId===poId&&item.fgpn===fgpn); const remaining=line?Math.max(0,Number(line.qty||0)-getPackagedQty(launchId,poId,fgpn)):0;
+  if(currentActor!=='packager'||!launch||!line||!packageType||!Number.isFinite(qty)||qty<=0){alert('Launch, PO, FGPN, package type, and a positive quantity are required.');return;}
+  if(qty>remaining){alert(`Only ${remaining} unit(s) remain to package for ${poId} / ${fgpn} in ${launchId}.`);return;}
+  const id=`PKG-${String(state.packageRecords.length+1).padStart(3,'0')}`; state.packageRecords.unshift({id,launchId,poId,fgpn,qty,packageType,recordedBy:'Lina Zahra',recordedAt:_extNow()});
+  if(typeof logAudit==='function')logAudit(`Packaging recorded ${id}`,'',`${launchId} · ${poId} · ${fgpn} · ${qty} u`,'Packager evidence'); renderPageContent();
+}
+
+function actionCompletePackaging(launchId) {
+  if(currentActor!=='packager')return; const launch=state.whDeliveries.find(item=>item.id===launchId); if(!launch||launch.productionStatus!=='Done'||launch.packagingStatus!=='In Progress')return;
+  const incomplete=(launch.launchItems||[]).filter(line=>getPackagedQty(launchId,line.poId,line.fgpn)<Number(line.qty||0));
+  if(incomplete.length){alert(`Cannot mark ${launchId} Packaged. Complete: ${incomplete.map(line=>`${line.poId} / ${line.fgpn} (${Number(line.qty||0)-getPackagedQty(launchId,line.poId,line.fgpn)} u missing)`).join(', ')}.`);return;}
+  launch.packagingStatus='Packaged'; launch.packagedBy='Lina Zahra'; launch.packagedAt=_extNow(); if(typeof logAudit==='function')logAudit(`Launch packaged ${launchId}`,'In Progress','Packaged','All launch quantities packaged by Packager'); syncProjectProgress(launch.project); renderPageContent();
 }
 
 //  FUNCTIONAL ACTIONS & POPUPS ENGINE
@@ -4757,6 +4827,7 @@ function showAddUserModal() {
         <option value="Launch Engineer">Launch Engineer</option>
         <option value="Launch Manager">Launch Manager</option>
         <option value="Shop TL">Shop TL</option>
+        <option value="Packager">Packager</option>
         <option value="WH Team Leader">WH Team Leader</option>
         <option value="WH Personnel">WH Personnel</option>
       </select>
@@ -4805,6 +4876,7 @@ function showEditUserModal(username) {
         <option value="Launch Engineer" ${user.role==='Launch Engineer'?'selected':''}>Launch Engineer</option>
         <option value="Launch Manager" ${user.role==='Launch Manager'?'selected':''}>Launch Manager</option>
         <option value="Shop TL" ${user.role==='Shop TL'?'selected':''}>Shop TL</option>
+        <option value="Packager" ${user.role==='Packager'?'selected':''}>Packager</option>
         <option value="WH Team Leader" ${user.role==='WH Team Leader'?'selected':''}>WH Team Leader</option>
         <option value="WH Personnel" ${user.role==='WH Personnel'?'selected':''}>WH Personnel</option>
         <option value="Plant Manager" ${user.role==='Plant Manager'?'selected':''}>Plant Manager</option>
@@ -6199,6 +6271,7 @@ function actionSaveWarehouseInstruction() {
     matList,
     status: 'authorized',
     productionStatus: 'In Progress',
+    packagingStatus: 'Waiting Production',
     meetingDecision: launch.meetingDecision,
     meetingMinutesFile: launch.pvFile,
     uploader: null,
