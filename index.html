@@ -573,17 +573,31 @@ const state = {
   viewingPODetail: null,            // PO id for dedicated detail page view
   pendingBOMAlert: null,            // PO id that needs BOM entry after upload
   bomData: [
-    { fgpn: 'BMW-S7-001', component: 'ALU-04', componentDesc: 'Aluminium 4mm', qtyPerUnit: 2.0 },
-    { fgpn: 'BMW-S7-001', component: 'THR-11', componentDesc: 'Black Sewing Thread', qtyPerUnit: 0.6 },
-    { fgpn: 'BMW-S7-001-R', component: 'ALU-04', componentDesc: 'Aluminium 4mm', qtyPerUnit: 1.8 },
-    { fgpn: 'BMW-S7-001-R', component: 'THR-11', componentDesc: 'Black Sewing Thread', qtyPerUnit: 0.5 },
-    { fgpn: 'BMW-S7-002', component: 'PLX-02', componentDesc: 'Flexible Plastic', qtyPerUnit: 1.5 },
-    { fgpn: 'BMW-S7-002', component: 'ROL-07', componentDesc: 'Foam Roll', qtyPerUnit: 0.8 },
-    { fgpn: 'VW-TIG-003', component: 'PLX-02', componentDesc: 'Flexible Plastic', qtyPerUnit: 2.0 },
-    { fgpn: 'VW-TIG-003', component: 'FBR-01', componentDesc: 'Fiberglass', qtyPerUnit: 1.2 },
-    { fgpn: 'VW-TIG-003-L', component: 'PLX-02', componentDesc: 'Flexible Plastic', qtyPerUnit: 1.8 },
-    { fgpn: 'VW-TIG-003-L', component: 'FBR-01', componentDesc: 'Fiberglass', qtyPerUnit: 1.0 }
+    { projectId:'PRJ-001', versionId:'BOM-001-001-V3', fgpn:'BMW-S7-001', component:'ALU-04', componentDesc:'Aluminium 4mm', qtyPerUnit:2.0, uom:'unit' },
+    { projectId:'PRJ-001', versionId:'BOM-001-001-V3', fgpn:'BMW-S7-001', component:'THR-11', componentDesc:'Black Sewing Thread', qtyPerUnit:0.6, uom:'unit' },
+    { projectId:'PRJ-001', versionId:'BOM-001-001R-V2', fgpn:'BMW-S7-001-R', component:'ALU-04', componentDesc:'Aluminium 4mm', qtyPerUnit:1.8, uom:'unit' },
+    { projectId:'PRJ-001', versionId:'BOM-001-001R-V2', fgpn:'BMW-S7-001-R', component:'THR-11', componentDesc:'Black Sewing Thread', qtyPerUnit:0.5, uom:'unit' },
+    { projectId:'PRJ-001', versionId:'BOM-001-002-V4', fgpn:'BMW-S7-002', component:'PLX-02', componentDesc:'Flexible Plastic', qtyPerUnit:1.5, uom:'unit' },
+    { projectId:'PRJ-001', versionId:'BOM-001-002-V4', fgpn:'BMW-S7-002', component:'ROL-07', componentDesc:'Foam Roll', qtyPerUnit:0.8, uom:'roll' },
+    { projectId:'PRJ-002', versionId:'BOM-002-003-V2', fgpn:'VW-TIG-003', component:'PLX-02', componentDesc:'Flexible Plastic', qtyPerUnit:2.0, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-003-V2', fgpn:'VW-TIG-003', component:'FBR-01', componentDesc:'Fiberglass', qtyPerUnit:1.2, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-003L-V1', fgpn:'VW-TIG-003-L', component:'PLX-02', componentDesc:'Flexible Plastic', qtyPerUnit:1.8, uom:'unit' },
+    { projectId:'PRJ-002', versionId:'BOM-002-003L-V1', fgpn:'VW-TIG-003-L', component:'FBR-01', componentDesc:'Fiberglass', qtyPerUnit:1.0, uom:'unit' }
   ],
+  bomVersions: [
+    { id:'BOM-001-001-V3', projectId:'PRJ-001', fgpn:'BMW-S7-001', version:3, status:'Active', file:'BMW-S7-001_BOM_v3.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'08/07/2026 10:14', activatedAt:'08/07/2026 10:15' },
+    { id:'BOM-001-001-V2', projectId:'PRJ-001', fgpn:'BMW-S7-001', version:2, status:'Superseded', file:'BMW-S7-001_BOM_v2.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'15/06/2026 09:21', activatedAt:'15/06/2026 09:22' },
+    { id:'BOM-001-001-V1', projectId:'PRJ-001', fgpn:'BMW-S7-001', version:1, status:'Superseded', file:'BMW-S7-001_BOM_v1.xlsx', uploadedBy:'Karim Benali', uploadedAt:'02/05/2026 14:05', activatedAt:'02/05/2026 14:06' },
+    { id:'BOM-001-001R-V2', projectId:'PRJ-001', fgpn:'BMW-S7-001-R', version:2, status:'Active', file:'BMW-S7-001-R_BOM_v2.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'07/07/2026 16:40', activatedAt:'07/07/2026 16:42' },
+    { id:'BOM-001-001R-V1', projectId:'PRJ-001', fgpn:'BMW-S7-001-R', version:1, status:'Superseded', file:'BMW-S7-001-R_BOM_v1.xlsx', uploadedBy:'Karim Benali', uploadedAt:'20/05/2026 11:08', activatedAt:'20/05/2026 11:09' },
+    { id:'BOM-001-002-V4', projectId:'PRJ-001', fgpn:'BMW-S7-002', version:4, status:'Active', file:'BMW-S7-002_BOM_v4.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'09/07/2026 08:31', activatedAt:'09/07/2026 08:32' },
+    { id:'BOM-001-002-V3', projectId:'PRJ-001', fgpn:'BMW-S7-002', version:3, status:'Superseded', file:'BMW-S7-002_BOM_v3.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'10/06/2026 13:10', activatedAt:'10/06/2026 13:11' },
+    { id:'BOM-002-003-V2', projectId:'PRJ-002', fgpn:'VW-TIG-003', version:2, status:'Active', file:'VW-TIG-003_BOM_v2.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'04/07/2026 15:20', activatedAt:'04/07/2026 15:22' },
+    { id:'BOM-002-003-V1', projectId:'PRJ-002', fgpn:'VW-TIG-003', version:1, status:'Superseded', file:'VW-TIG-003_BOM_v1.xlsx', uploadedBy:'Sofia Marini', uploadedAt:'12/05/2026 09:44', activatedAt:'12/05/2026 09:45' },
+    { id:'BOM-002-003L-V1', projectId:'PRJ-002', fgpn:'VW-TIG-003-L', version:1, status:'Active', file:'VW-TIG-003-L_BOM_v1.xlsx', uploadedBy:'Ahmed Rami', uploadedAt:'04/07/2026 15:28', activatedAt:'04/07/2026 15:30' }
+  ],
+  bomSearchQuery: '',
+  bomStatusFilter: 'all',
   launchSimQty: {},                 // { 'PO-2024-018__BMW-S7-001': 50, ... } per-PN sim quantities
   launchSimResults: {},             // { 'PO-2024-018__BMW-S7-001': {feasible:true, ...} }
   launchSelectedPOs: [],            // POs included in the current production launch plan
@@ -2606,6 +2620,7 @@ function renderLeProjectWorkspace(projectId) {
         </div>
       </div>
     `;
+    tabContentHtml = renderProjectBom(p.id);
   } else if (activeTab === 'simulation') {
     tabContentHtml = renderLeSim(p.id);
   } else if (activeTab === 'launch-authorization') {
@@ -3347,7 +3362,7 @@ function renderLeSim(projectScopeId = null) {
     const demand = {};
     simulationPOs.forEach(order => (order.parts || [{fgpn:order.fgpn,qty:order.qty,launched:order.launchedQty||0}]).forEach(part => {
       const remaining = Math.max(0, Number(part.qty||0)-Number(part.launched||0));
-      const mappings = (state.bomData || []).filter(mapping=>mapping.fgpn===part.fgpn);
+      const mappings = getActiveBomLines(order.project, part.fgpn);
       if (!mappings.length) { if(!missingBomFGPNs.includes(part.fgpn)) missingBomFGPNs.push(part.fgpn); return; }
       mappings.forEach(mapping=>{ demand[mapping.component]=(demand[mapping.component]||0)+remaining*mapping.qtyPerUnit*2; });
     }));
@@ -5685,17 +5700,90 @@ function actionPrintOriginalPO() {
 }
 
 // Part Number → BOM modal
-function showPartBOMModal(fgpn, poId) {
+function getActiveBomVersion(projectId, fgpn) {
+  return (state.bomVersions || []).find(item => item.projectId === projectId && item.fgpn === fgpn && item.status === 'Active') || null;
+}
+
+function getActiveBomLines(projectId, fgpn) {
+  const active = getActiveBomVersion(projectId, fgpn);
+  return active ? (state.bomData || []).filter(item => item.projectId === projectId && item.fgpn === fgpn && item.versionId === active.id) : [];
+}
+
+function getProjectPartNumbers(projectId) {
+  const partMap = new Map();
+  state.pos.filter(po => po.project === projectId).forEach(po => {
+    (po.parts || [{ fgpn:po.fgpn, desc:'-', qty:po.qty }]).forEach(part => {
+      const current = partMap.get(part.fgpn) || { fgpn:part.fgpn, description:part.desc || '-', poIds:new Set(), orderedQty:0 };
+      current.poIds.add(po.id);
+      current.orderedQty += Number(part.qty || 0);
+      partMap.set(part.fgpn, current);
+    });
+  });
+  return [...partMap.values()].map(item => ({ ...item, poIds:[...item.poIds] }));
+}
+
+function renderProjectBom(projectId) {
+  const query = (state.bomSearchQuery || '').trim().toLowerCase();
+  const statusFilter = state.bomStatusFilter || 'all';
+  const allParts = getProjectPartNumbers(projectId);
+  const parts = allParts.filter(part => {
+    const active = getActiveBomVersion(projectId, part.fgpn);
+    return (!query || `${part.fgpn} ${part.description} ${part.poIds.join(' ')}`.toLowerCase().includes(query)) &&
+      (statusFilter === 'all' || (statusFilter === 'active' && active) || (statusFilter === 'missing' && !active));
+  });
+  const activeCount = allParts.filter(part => getActiveBomVersion(projectId, part.fgpn)).length;
+  const canUpload = canEditProject(projectId);
+  return `
+    <div class="page-header flex-between" style="padding:0; margin-bottom:16px">
+      <div><h2 class="card-title" style="margin:0">Part Number BOMs</h2><p class="page-subtitle" style="margin:4px 0 0">Each FGPN has one active BOM in ${projectId}. Previous versions remain read-only.</p></div>
+      <span class="badge ${activeCount === allParts.length ? 'green' : 'orange'}">${activeCount} of ${allParts.length} ready</span>
+    </div>
+    <div class="overview-panel" style="margin-bottom:16px"><div class="flex-between" style="gap:12px; flex-wrap:wrap">
+      <div style="display:flex; gap:8px; flex:1; min-width:280px">
+        <input class="form-input" style="max-width:420px" value="${state.bomSearchQuery || ''}" placeholder="Search FGPN, description, or PO number" oninput="state.bomSearchQuery=this.value; renderPageContent()">
+        <select class="form-input" style="width:160px" onchange="state.bomStatusFilter=this.value; renderPageContent()"><option value="all" ${statusFilter === 'all' ? 'selected' : ''}>All part numbers</option><option value="active" ${statusFilter === 'active' ? 'selected' : ''}>Active BOM</option><option value="missing" ${statusFilter === 'missing' ? 'selected' : ''}>Missing BOM</option></select>
+      </div><div class="text-xs">Uploads are scoped to this project and never overwrite history.</div>
+    </div></div>
+    <div style="display:flex; flex-direction:column; gap:10px">
+      ${parts.length ? parts.map(part => {
+        const active = getActiveBomVersion(projectId, part.fgpn);
+        const lines = getActiveBomLines(projectId, part.fgpn);
+        const versions = (state.bomVersions || []).filter(item => item.projectId === projectId && item.fgpn === part.fgpn).sort((a,b) => b.version - a.version);
+        return `<details class="card" style="padding:0; overflow:hidden"><summary style="list-style:none; cursor:pointer; padding:16px 18px; display:grid; grid-template-columns:minmax(190px,1.4fr) minmax(150px,1fr) 110px 150px auto; gap:16px; align-items:center">
+          <div><div class="cell-primary fw-600" style="font-family:monospace">${part.fgpn}</div><div class="text-xs" style="margin-top:3px">${part.description}</div></div>
+          <div><div class="text-xs">Purchase orders</div><div class="fw-600" style="font-size:12px; margin-top:3px">${part.poIds.join(', ')}</div></div>
+          <div><div class="text-xs">Materials</div><div class="fw-600" style="margin-top:3px">${lines.length || '-'}</div></div>
+          <div>${active ? `<span class="badge green">Active v${active.version}</span><div class="text-xs" style="margin-top:5px">${active.activatedAt}</div>` : `<span class="badge red">BOM missing</span>`}</div>
+          <div class="flex gap-8" style="justify-content:flex-end" onclick="event.preventDefault(); event.stopPropagation()">${active ? `<button class="btn btn-outline" onclick="showPartBOMModal('${part.fgpn}', null, '${projectId}')">View</button>` : ''}${canUpload ? `<button class="btn btn-primary" onclick="showBOMUploadModal('${part.fgpn}', '${projectId}')">${active ? 'Upload new' : 'Upload BOM'}</button>` : ''}</div>
+        </summary><div style="border-top:1px solid var(--border); padding:14px 18px 18px; background:var(--surface-subtle)"><div class="flex-between" style="margin-bottom:10px"><strong style="font-size:13px">Version history</strong><span class="text-xs">${versions.length} immutable version${versions.length === 1 ? '' : 's'}</span></div>
+          ${versions.length ? `<div class="table-wrap"><table><thead><tr><th>Version</th><th>Status</th><th>Source file</th><th>Uploaded by</th><th>Activated</th><th></th></tr></thead><tbody>${versions.map(version => `<tr><td class="cell-primary fw-600">v${version.version}</td><td><span class="badge ${version.status === 'Active' ? 'green' : 'grey'}">${version.status}</span></td><td>${version.file}</td><td>${version.uploadedBy}</td><td>${version.activatedAt}</td><td><button class="btn btn-outline" style="padding:5px 9px; font-size:11px" onclick="showBOMVersionModal('${projectId}','${part.fgpn}','${version.id}')">View</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state" style="padding:18px">No BOM has been uploaded for this part number.</div>`}
+        </div></details>`;
+      }).join('') : `<div class="empty-state"><strong>No matching part numbers</strong><p>Change the search or status filter.</p></div>`}
+    </div>`;
+}
+
+function showBOMVersionModal(projectId, fgpn, versionId) {
+  const version = (state.bomVersions || []).find(item => item.id === versionId);
+  const lines = (state.bomData || []).filter(item => item.projectId === projectId && item.fgpn === fgpn && item.versionId === versionId);
   const overlay = document.getElementById('modal-overlay');
   const content = document.getElementById('modal-content');
-  const boms = state.bomData.filter(b => b.fgpn === fgpn);
+  content.innerHTML = `<div class="modal-header" style="border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px"><div><h3 class="modal-title">${fgpn} - BOM v${version?.version || '-'}</h3><p class="text-xs" style="margin-top:4px">${projectId} / ${version?.file || 'BOM record'}</p></div><button class="modal-close" onclick="closeModal()">x</button></div><div class="alert-band ${version?.status === 'Active' ? 'green' : 'orange'}" style="margin-bottom:14px"><span>${version?.status === 'Active' ? 'This is the active version used by new simulations.' : 'Historical versions are read-only and retained for audit.'}</span></div><div class="table-wrap"><table><thead><tr><th>Material part number</th><th>Description</th><th>Quantity / FGPN</th><th>UOM</th></tr></thead><tbody>${lines.map(line => `<tr><td class="cell-primary fw-600">${line.component}</td><td>${line.componentDesc}</td><td>${line.qtyPerUnit}</td><td>${line.uom || 'unit'}</td></tr>`).join('') || '<tr><td colspan="4">Material snapshot retained in the source file.</td></tr>'}</tbody></table></div><div class="flex gap-8" style="justify-content:flex-end; margin-top:16px"><button class="btn btn-outline" onclick="closeModal()">Close</button></div>`;
+  overlay.style.display = 'flex';
+}
+
+function showPartBOMModal(fgpn, poId, projectId) {
+  const overlay = document.getElementById('modal-overlay');
+  const content = document.getElementById('modal-content');
   const po = poId ? state.pos.find(item => item.id === poId) : null;
+  projectId = projectId || po?.project || state.selectedProjectIdForLe;
+  const activeVersion = getActiveBomVersion(projectId, fgpn);
+  const boms = getActiveBomLines(projectId, fgpn);
   const part = po && (po.parts || []).find(item => item.fgpn === fgpn);
   const partQty = part ? part.qty : null;
 
   content.innerHTML = `
     <div class="modal-header" style="border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px">
-      <h3 class="modal-title">BOM — ${fgpn}</h3>
+      <div><h3 class="modal-title">BOM - ${fgpn}</h3><p class="text-xs" style="margin-top:4px">${projectId}${activeVersion ? ` / Active v${activeVersion.version}` : ''}</p></div>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     ${boms.length > 0 ? `
@@ -5723,7 +5811,7 @@ function showPartBOMModal(fgpn, poId) {
       </div>
     `}
     <div class="flex gap-8" style="justify-content:flex-end; margin-top:16px">
-      <button class="btn btn-primary" onclick="showBOMUploadModal('${fgpn}')">Upload new BOM</button>
+      ${canEditProject(projectId) ? `<button class="btn btn-primary" onclick="showBOMUploadModal('${fgpn}', '${projectId}')">Upload new BOM</button>` : ''}
       <button class="btn btn-outline" onclick="closeModal()">Close</button>
     </div>
   `;
@@ -5731,13 +5819,14 @@ function showPartBOMModal(fgpn, poId) {
 }
 
 // Launch tab — simulate a single part number
-function showBOMUploadModal(fgpn) {
+function showBOMUploadModal(fgpn, projectId) {
+  projectId = projectId || state.selectedProjectIdForLe;
   const content = document.getElementById('modal-content');
   content.innerHTML = `
     <div class="modal-header" style="border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px">
       <div>
         <h3 class="modal-title">Upload BOM for ${fgpn}</h3>
-        <p style="margin:4px 0 0; color:var(--text-muted); font-size:12px">This file will update the material list used by this part number.</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:12px">${projectId} / A validated upload creates a new immutable version.</p>
       </div>
       <button class="modal-close" onclick="closeModal()">x</button>
     </div>
@@ -5751,22 +5840,32 @@ function showBOMUploadModal(fgpn) {
       <span>The validated upload becomes the active BOM. The previous version remains in history.</span>
     </div>
     <div class="flex gap-8" style="justify-content:flex-end; margin-top:18px">
-      <button class="btn btn-outline" onclick="showPartBOMModal('${fgpn}')">Back</button>
-      <button class="btn btn-primary" onclick="actionUploadBOMForPart('${fgpn}')">Upload and validate</button>
+      <button class="btn btn-outline" onclick="showPartBOMModal('${fgpn}', null, '${projectId}')">Back</button>
+      <button class="btn btn-primary" onclick="actionUploadBOMForPart('${fgpn}', '${projectId}')">Upload and validate</button>
     </div>
   `;
 }
 
-function actionUploadBOMForPart(fgpn) {
-  if (!requireProjectWriteAccess(state.selectedProjectIdForLe)) return;
+function actionUploadBOMForPart(fgpn, projectId) {
+  if (!requireProjectWriteAccess(projectId)) return;
   const input = document.getElementById('bom-upload-file');
   if (!input || !input.files || input.files.length === 0) {
     alert('Choose a BOM spreadsheet before uploading.');
     return;
   }
   showLoading(`Validating BOM for ${fgpn}...`, () => {
+    const versions = (state.bomVersions || []).filter(item => item.projectId === projectId && item.fgpn === fgpn);
+    versions.filter(item => item.status === 'Active').forEach(item => item.status = 'Superseded');
+    const nextVersion = Math.max(0, ...versions.map(item => item.version)) + 1;
+    const versionId = `BOM-${projectId}-${fgpn}-V${nextVersion}`;
+    const now = new Date().toLocaleString('en-GB');
+    state.bomVersions.push({ id:versionId, projectId, fgpn, version:nextVersion, status:'Active', file:input.files[0].name, uploadedBy:state.currentUserName, uploadedAt:now, activatedAt:now });
+    const sourceLines = (state.bomData || []).filter(item => item.projectId === projectId && item.fgpn === fgpn);
+    const templateLines = sourceLines.length ? sourceLines.slice(-2) : [{ component:'NEW-MAT-01', componentDesc:'Validated imported material', qtyPerUnit:1, uom:'unit' }];
+    templateLines.forEach(line => state.bomData.push({ ...line, projectId, fgpn, versionId }));
+    (state.savedLaunchPlans || []).filter(plan => plan.projectId === projectId && !plan.deliveryCode && plan.meetingDecision !== 'approved' && plan.lines.some(line => line.fgpn === fgpn)).forEach(plan => plan.status = 'bom_stale');
     closeModal();
-    alert(`BOM for ${fgpn} uploaded successfully. The new version is now active.`);
+    alert(`BOM for ${fgpn} uploaded successfully. Version ${nextVersion} is now active in ${projectId}.`);
     if (typeof logAudit === 'function') logAudit('BOM uploaded', fgpn, 'active version', 'part number BOM');
     renderPageContent();
   });
@@ -5774,6 +5873,7 @@ function actionUploadBOMForPart(fgpn) {
 
 function savedLaunchPlanStatus(plan) {
   if (plan.deliveryCode) return { label:'Warehouse released', badge:'green' };
+  if (plan.status === 'bom_stale') return { label:'BOM changed - rerun', badge:'red' };
   if (plan.meetingDecision === 'approved') return { label:'Instruction pending', badge:'blue' };
   if (plan.meetingDecision === 'rejected') return { label:'Meeting rejected', badge:'red' };
   if (plan.pvFile) return { label:'Decision pending', badge:'orange' };
@@ -5794,6 +5894,10 @@ function renderSavedLaunchPlans(projectId) {
 function resumeSavedLaunchPlan(planId) {
   const plan = (state.savedLaunchPlans || []).find(item => item.id === planId);
   if (!plan || !requireProjectWriteAccess(plan.projectId)) return;
+  if (plan.status === 'bom_stale') {
+    alert('The active BOM changed after this plan was saved. Rerun launch feasibility before uploading meeting minutes.');
+    return;
+  }
   state.pendingLaunchAuthorization = plan;
   state.activeWorkspaceTab = 'launch-authorization';
   renderPageContent();
@@ -5993,7 +6097,7 @@ function evaluateLaunchPlan(projectPOs) {
         return;
       }
 
-      const boms = state.bomData.filter(b => b.fgpn === pt.fgpn);
+      const boms = getActiveBomLines(po.project, pt.fgpn);
       if (boms.length === 0) {
         lineResults[key] = { feasible: false, message: 'BOM missing. Upload a BOM for this part number.', components: [] };
         issues.push(`${po.id} / ${pt.fgpn}: upload the missing BOM.`);
@@ -6126,7 +6230,10 @@ function actionCommitSelectedLaunch() {
     parts.forEach(pt => {
       const key = po.id + '__' + pt.fgpn;
       const qty = Number(state.launchSimQty[key]) || 0;
-      if (qty > 0) lines.push({ poId: po.id, fgpn: pt.fgpn, desc: pt.desc, qty });
+      if (qty > 0) {
+        const bomVersion = getActiveBomVersion(projectId, pt.fgpn);
+        lines.push({ poId:po.id, fgpn:pt.fgpn, desc:pt.desc, qty, bomVersionId:bomVersion?.id || null, bomVersion:bomVersion?.version || null });
+      }
     });
   });
 
@@ -6341,7 +6448,7 @@ function actionLaunchSimulatePart(poId, fgpn) {
   if (!pt) return;
 
   const simQty = state.launchSimQty[key] !== undefined ? state.launchSimQty[key] : Math.max(0, pt.qty - pt.launched);
-  const boms = state.bomData.filter(b => b.fgpn === fgpn);
+  const boms = getActiveBomLines(po.project, fgpn);
 
   if (boms.length === 0) {
     state.launchSimResults[key] = { feasible: true, simQty, missing: [] };
