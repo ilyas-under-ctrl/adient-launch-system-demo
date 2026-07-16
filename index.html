@@ -585,6 +585,9 @@ const state = {
   launchSimQty: {},                 // { 'PO-2024-018__BMW-S7-001': 50, ... } per-PN sim quantities
   launchSimResults: {},             // { 'PO-2024-018__BMW-S7-001': {feasible:true, ...} }
   launchSelectedPOs: [],            // POs included in the current production launch plan
+  savedLaunchPlans: [
+    { id:'PLAN-2024-007', projectId:'PRJ-001', selectedIds:['PO-2024-018'], lines:[{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:50}], totalQty:50, materialDemand:{'ALU-04':100,'THR-11':30}, createdAt:'14/07/2026 09:00', pvFile:null, meetingDecision:null, meetingNotes:'', deliveryCode:null, deliveryId:null, status:'meeting_pending' }
+  ],
   pendingLaunchAuthorization: null, // Feasible plan awaiting operation-specific meeting minutes
   activeWhDeliveryId: null          // Delivery instruction unlocked by the Warehouse TL code
 };
@@ -2585,6 +2588,8 @@ function renderLeProjectWorkspace(projectId) {
           <p class="page-subtitle" style="margin:4px 0 0 0">Select POs, set a quantity for each part number, then launch the feasible plan.</p>
         </div>
       </div>
+
+      ${renderSavedLaunchPlans(p.id)}
 
       <div id="launch-decision">${renderLaunchDecision(launchPlan)}</div>
 
@@ -5656,6 +5661,33 @@ function actionUploadBOMForPart(fgpn) {
   });
 }
 
+function savedLaunchPlanStatus(plan) {
+  if (plan.deliveryCode) return { label:'Warehouse released', badge:'green' };
+  if (plan.meetingDecision === 'approved') return { label:'Instruction pending', badge:'blue' };
+  if (plan.meetingDecision === 'rejected') return { label:'Meeting rejected', badge:'red' };
+  if (plan.pvFile) return { label:'Decision pending', badge:'orange' };
+  return { label:'Meeting minutes pending', badge:'grey' };
+}
+
+function renderSavedLaunchPlans(projectId) {
+  const plans = (state.savedLaunchPlans || []).filter(plan => plan.projectId === projectId);
+  return `<div class="overview-panel" style="margin-bottom:18px">
+    <div class="flex-between" style="margin-bottom:12px"><div><h2>Saved launch plans</h2><div class="text-xs" style="margin-top:4px">Plans remain available when you leave this page. Resume any plan to upload its meeting minutes or continue authorization.</div></div><span class="badge blue">${plans.length} saved</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Plan</th><th>POs</th><th>Part numbers / quantities</th><th>Created</th><th>Meeting</th><th>Warehouse</th><th></th></tr></thead><tbody>
+      ${plans.map(plan=>{const status=savedLaunchPlanStatus(plan);return `<tr><td class="fw-600">${plan.id}</td><td>${plan.selectedIds.join(', ')}</td><td>${plan.lines.map(line=>`<code>${line.fgpn}</code> ${line.qty}u`).join('<br>')}</td><td>${plan.createdAt}</td><td><span class="badge ${status.badge}">${status.label}</span>${plan.pvFile?`<div class="text-xs" style="margin-top:4px">${plan.pvFile}</div>`:''}</td><td>${plan.deliveryCode?`<code>${plan.deliveryCode}</code>`:'Not released'}</td><td><button class="btn btn-outline" onclick="resumeSavedLaunchPlan('${plan.id}')">Resume</button></td></tr>`;}).join('')}
+      ${plans.length?'':`<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">No saved launch plans for this project.</td></tr>`}
+    </tbody></table></div>
+  </div>`;
+}
+
+function resumeSavedLaunchPlan(planId) {
+  const plan = (state.savedLaunchPlans || []).find(item => item.id === planId);
+  if (!plan || !requireProjectWriteAccess(plan.projectId)) return;
+  state.pendingLaunchAuthorization = plan;
+  state.activeWorkspaceTab = 'launch-authorization';
+  renderPageContent();
+}
+
 function renderLaunchAuthorizationPage(project) {
   const launch = state.pendingLaunchAuthorization;
   if (!launch || launch.projectId !== project.id) {
@@ -5676,10 +5708,10 @@ function renderLaunchAuthorizationPage(project) {
   return `
     <div class="page-header flex-between" style="padding:0; margin-bottom:18px">
       <div>
-        <h2 class="card-title" style="margin:0">Launch Authorization</h2>
+        <h2 class="card-title" style="margin:0">${launch.id} · Launch Authorization</h2>
         <p class="page-subtitle" style="margin:4px 0 0">Link the meeting decision before releasing materials to manufacturing.</p>
       </div>
-      <button class="btn btn-outline" onclick="cancelLaunchAuthorization()">Back to launch plan</button>
+      <button class="btn btn-outline" onclick="cancelLaunchAuthorization()">Back to saved plans</button>
     </div>
 
     <div style="display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:18px; background:#fff">
@@ -5987,7 +6019,9 @@ function actionCommitSelectedLaunch() {
     });
   });
 
-  state.pendingLaunchAuthorization = {
+  const planId = `PLAN-${new Date().getFullYear()}-${String((state.savedLaunchPlans || []).length + 7).padStart(3, '0')}`;
+  const savedPlan = {
+    id: planId,
     projectId,
     selectedIds,
     lines,
@@ -5998,10 +6032,14 @@ function actionCommitSelectedLaunch() {
     meetingDecision: null,
     meetingNotes: '',
     deliveryCode: null,
-    deliveryId: null
+    deliveryId: null,
+    status: 'meeting_pending'
   };
+  state.savedLaunchPlans = state.savedLaunchPlans || [];
+  state.savedLaunchPlans.unshift(savedPlan);
+  state.pendingLaunchAuthorization = savedPlan;
   state.activeWorkspaceTab = 'launch-authorization';
-  if (typeof logAudit === 'function') logAudit('Launch plan submitted', '', `${plan.totalQty} units`, selectedIds.join(', '));
+  if (typeof logAudit === 'function') logAudit(`Launch plan saved ${planId}`, '', `${plan.totalQty} units`, selectedIds.join(', '));
   renderPageContent();
 }
 
@@ -6029,6 +6067,7 @@ function actionUploadLaunchPV() {
     if (!launch) return;
     launch.pvFile = file.name;
     launch.pvUploadedAt = new Date().toLocaleString('en-GB');
+    launch.status = 'decision_pending';
     if (typeof logAudit === 'function') logAudit('Meeting minutes uploaded', '', file.name, `Launch ${launch.totalQty} units`);
     renderPageContent();
   });
@@ -6058,6 +6097,7 @@ function actionValidateLaunchMeeting() {
   launch.meetingDecision = decision;
   launch.meetingNotes = notes;
   if (decision === 'rejected') {
+    launch.status = 'rejected';
     if (typeof logAudit === 'function') logAudit('Launch decision', 'feasible', 'rejected', notes || 'Meeting did not approve launch');
     renderPageContent();
     return;
@@ -6081,6 +6121,7 @@ function actionValidateLaunchMeeting() {
   });
   syncProjectProgress(launch.projectId);
   launch.finalizedAt = new Date().toLocaleString('en-GB');
+  launch.status = 'instruction_pending';
   state.launchSelectedPOs = [];
   if (typeof logAudit === 'function') logAudit('Launch approved and finalized', 'feasible', 'approved', launch.pvFile);
   renderPageContent();
@@ -6145,6 +6186,7 @@ function actionSaveWarehouseInstruction() {
   launch.instructionNotes = instructionNotes;
   launch.instructionMaterials = matList;
   launch.instructionSavedAt = new Date().toLocaleString('en-GB');
+  launch.status = 'warehouse_released';
   state.lastGeneratedCode = deliveryCode;
   if (typeof logAudit === 'function') logAudit('Warehouse delivery instruction saved', '', deliveryCode, `${deliveryId}; required ${requiredDeliveryLabel}; expires ${expiresLabel}`);
   renderPageContent();
