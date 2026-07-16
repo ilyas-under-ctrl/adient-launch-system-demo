@@ -2606,6 +2606,8 @@ function renderLeProjectWorkspace(projectId) {
         </div>
       </div>
     `;
+  } else if (activeTab === 'simulation') {
+    tabContentHtml = renderLeSim(p.id);
   } else if (activeTab === 'launch-authorization') {
     tabContentHtml = renderLaunchAuthorizationPage(p);
   } else if (activeTab === 'launch') {
@@ -3130,6 +3132,7 @@ function renderLeProjectWorkspace(projectId) {
         <div class="pill-tab ${activeTab === 'overview' ? 'active' : ''}" onclick="switchWorkspaceTab('overview')">Overview</div>
         <div class="pill-tab ${activeTab === 'pos' ? 'active' : ''}" onclick="switchWorkspaceTab('pos')">Purchase Orders (POs)</div>
         <div class="pill-tab ${activeTab === 'bom' ? 'active' : ''}" onclick="switchWorkspaceTab('bom')">BOM</div>
+        <div class="pill-tab ${activeTab === 'simulation' ? 'active' : ''}" onclick="switchWorkspaceTab('simulation')">Simulation</div>
         <div class="pill-tab ${activeTab === 'launch' || activeTab === 'launch-authorization' ? 'active' : ''}" onclick="switchWorkspaceTab('launch')">Launch</div>
         <div class="pill-tab ${activeTab === 'logistics' ? 'active' : ''}" onclick="switchWorkspaceTab('logistics')">Shipments</div>
         <div class="pill-tab ${activeTab === 'finance' ? 'active' : ''}" onclick="switchWorkspaceTab('finance')">Finance</div>
@@ -3299,15 +3302,17 @@ function renderLePOs() {
   `;
 }
 
-function renderLeSim() {
+function renderLeSim(projectScopeId = null) {
   const simMode = state.simMode || 'single';
-  const allowedPOs = getFilteredPOs().filter(po => po.status !== 'Delivered');
-  let selectedPOs = state.simSelectedPOs || [];
+  const allowedPOs = getFilteredPOs().filter(po => po.status !== 'Delivered' && (!projectScopeId || po.project === projectScopeId));
+  const allowedIds = new Set(allowedPOs.map(po => po.id));
+  let selectedPOs = (state.simSelectedPOs || []).filter(poId => allowedIds.has(poId));
 
   if (selectedPOs.length === 0 && allowedPOs.length > 0) {
     selectedPOs = [allowedPOs[0].id];
     state.simSelectedPOs = selectedPOs;
   }
+  state.simSelectedPOs = selectedPOs;
 
   const selectedPOId = state.simActivePOId || (allowedPOs[0] ? allowedPOs[0].id : '');
   const po = allowedPOs.find(p => p.id === selectedPOId) || allowedPOs[0];
@@ -3391,8 +3396,8 @@ function renderLeSim() {
   return `
     <div class="page">
       <div class="page-header">
-        <h1 class="page-title">Feasibility Simulation</h1>
-        <p class="page-subtitle">Raw material stock calculation and verification against BOM</p>
+        <h1 class="page-title">${projectScopeId ? 'Project Feasibility Simulation' : 'Global Feasibility Simulation'}</h1>
+        <p class="page-subtitle">${projectScopeId ? `Restricted to purchase orders in ${projectScopeId}.` : 'Cross-project planning across all permitted projects.'} Raw material stock is verified against the active BOM.</p>
       </div>
 
       <div class="pill-tabs">
