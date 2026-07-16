@@ -2752,7 +2752,7 @@ function renderLeProjectWorkspace(projectId) {
                     <td style="color:var(--green); font-weight:600">${pt.launched} u</td>
                     <td style="color:${rem > 0 ? 'var(--orange)' : 'var(--green)'}; font-weight:600">${rem} u</td>
                     <td><input type="number" class="form-input" data-launch-qty="${key}" style="padding:6px 8px; font-size:12px; width:100%; margin:0" min="0" max="${rem}" value="${simQty}" ${!isSelected || isComplete ? 'disabled' : ''} oninput="actionLaunchQtyInput('${po.id}','${pt.fgpn}',this.value)"></td>
-                    <td><button id="${inlineBomRowId(po.id, pt.fgpn, 'launch')}-button" class="btn btn-outline" style="padding:5px 9px; font-size:11px" aria-expanded="false" onclick="toggleInlineBom('${po.id}','${pt.fgpn}','launch')">Materials <span aria-hidden="true">&#9662;</span></button></td>
+                    <td style="cursor:pointer" onclick="event.stopPropagation();toggleInlineBom('${po.id}','${pt.fgpn}','launch')"><span id="${inlineBomRowId(po.id, pt.fgpn, 'launch')}-button" aria-expanded="false" style="display:inline-flex; align-items:center; gap:7px; color:var(--text-secondary); font-size:12px; font-weight:600">Materials <span data-accordion-chevron aria-hidden="true" style="color:var(--text-muted)">&#9662;</span></span></td>
                     <td id="launch-result-${key.replace(/[^a-zA-Z0-9_-]/g, '-')}">${renderLaunchLineResult(result, isSelected, isComplete)}</td>
                   </tr>${renderInlineBomRow(po, pt, 8, 'launch')}`;
                 }).join('')}
@@ -5404,8 +5404,9 @@ function renderPODetailPage(poId, project) {
               ${parts.map(pt => {
                 const rem = Math.max(0, pt.qty - pt.launched);
                 const pct = pt.qty > 0 ? Math.round((pt.launched / pt.qty) * 100) : 0;
+                const materialCount = getActiveBomLines(po.project, pt.fgpn).length;
                 return `
-                  <tr>
+                  <tr class="clickable-row" role="button" tabindex="0" aria-label="Expand materials for ${pt.fgpn}" onclick="toggleInlineBom('${po.id}','${pt.fgpn}','detail')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleInlineBom('${po.id}','${pt.fgpn}','detail')}">
                     <td class="cell-primary fw-600" style="font-family:monospace">${pt.fgpn}</td>
                     <td>${pt.desc}</td>
                     <td>${pt.qty} u</td>
@@ -5419,7 +5420,7 @@ function renderPODetailPage(poId, project) {
                         <span style="font-size:11px; font-weight:600; min-width:36px; text-align:right">${pct}%</span>
                       </div>
                     </td>
-                    <td><button id="${inlineBomRowId(po.id, pt.fgpn, 'detail')}-button" class="btn btn-outline" style="padding:5px 9px; font-size:11px" aria-expanded="false" onclick="toggleInlineBom('${po.id}','${pt.fgpn}','detail')">Materials <span aria-hidden="true">&#9662;</span></button></td>
+                    <td><span id="${inlineBomRowId(po.id, pt.fgpn, 'detail')}-button" aria-expanded="false" style="display:inline-flex; align-items:center; gap:7px; color:var(--text-secondary); font-size:12px; font-weight:600; white-space:nowrap">${materialCount ? `${materialCount} materials` : 'BOM missing'} <span data-accordion-chevron aria-hidden="true" style="color:var(--text-muted)">&#9662;</span></span></td>
                   </tr>${renderInlineBomRow(po, pt, 7, 'detail')}`;
               }).join('')}
             </tbody>
@@ -5782,12 +5783,16 @@ function inlineBomRowId(poId, fgpn, context) {
 
 function toggleInlineBom(poId, fgpn, context) {
   const row = document.getElementById(inlineBomRowId(poId, fgpn, context));
-  const button = document.getElementById(inlineBomRowId(poId, fgpn, context) + '-button');
-  if (!row || !button) return;
+  const trigger = document.getElementById(inlineBomRowId(poId, fgpn, context) + '-button');
+  if (!row) return;
   const willOpen = row.style.display === 'none';
   row.style.display = willOpen ? 'table-row' : 'none';
-  button.setAttribute('aria-expanded', String(willOpen));
-  button.innerHTML = `${willOpen ? 'Hide' : 'Materials'} <span aria-hidden="true">${willOpen ? '&#9652;' : '&#9662;'}</span>`;
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', String(willOpen));
+    const chevron = trigger.querySelector('[data-accordion-chevron]');
+    if (chevron) chevron.innerHTML = willOpen ? '&#9652;' : '&#9662;';
+    if (trigger.tagName === 'BUTTON') trigger.firstChild.textContent = willOpen ? 'Hide ' : 'Materials ';
+  }
 }
 
 function renderInlineBomRow(po, part, columnCount, context) {
