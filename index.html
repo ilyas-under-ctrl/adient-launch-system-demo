@@ -2679,15 +2679,15 @@ function renderLeProjectWorkspace(projectId) {
                   const result = launchPlan.lineResults[key];
                   return `
                   <tr>
-                    <td class="cell-primary fw-600" style="font-family:monospace; cursor:pointer; text-decoration:underline; text-decoration-style:dotted" onclick="showPartBOMModal('${pt.fgpn}', '${po.id}')" title="View BOM materials">${pt.fgpn}</td>
+                    <td class="cell-primary fw-600" style="font-family:monospace">${pt.fgpn}</td>
                     <td>${pt.desc}</td>
                     <td>${pt.qty} u</td>
                     <td style="color:var(--green); font-weight:600">${pt.launched} u</td>
                     <td style="color:${rem > 0 ? 'var(--orange)' : 'var(--green)'}; font-weight:600">${rem} u</td>
                     <td><input type="number" class="form-input" data-launch-qty="${key}" style="padding:6px 8px; font-size:12px; width:100%; margin:0" min="0" max="${rem}" value="${simQty}" ${!isSelected || isComplete ? 'disabled' : ''} oninput="actionLaunchQtyInput('${po.id}','${pt.fgpn}',this.value)"></td>
-                    <td><button class="btn btn-outline" style="padding:5px 9px; font-size:11px" onclick="showPartBOMModal('${pt.fgpn}', '${po.id}')">Materials</button></td>
+                    <td><button id="${inlineBomRowId(po.id, pt.fgpn, 'launch')}-button" class="btn btn-outline" style="padding:5px 9px; font-size:11px" aria-expanded="false" onclick="toggleInlineBom('${po.id}','${pt.fgpn}','launch')">Materials <span aria-hidden="true">&#9662;</span></button></td>
                     <td id="launch-result-${key.replace(/[^a-zA-Z0-9_-]/g, '-')}">${renderLaunchLineResult(result, isSelected, isComplete)}</td>
-                  </tr>`;
+                  </tr>${renderInlineBomRow(po, pt, 8, 'launch')}`;
                 }).join('')}
               </tbody>
             </table>
@@ -5327,7 +5327,7 @@ function renderPODetailPage(poId, project) {
 
       <div class="card" style="margin-bottom:24px">
         <h2 class="card-title">References (Part Numbers)</h2>
-        <p style="font-size:12px; color:var(--text-muted); margin:-4px 0 12px 0">Click a FGPN to view its BOM</p>
+        <p style="font-size:12px; color:var(--text-muted); margin:-4px 0 12px 0">Expand a part number to review its active project BOM.</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -5339,7 +5339,7 @@ function renderPODetailPage(poId, project) {
                 const pct = pt.qty > 0 ? Math.round((pt.launched / pt.qty) * 100) : 0;
                 return `
                   <tr>
-                    <td class="cell-primary fw-600" style="font-family:monospace; cursor:pointer; text-decoration:underline; text-decoration-style:dotted" onclick="showPartBOMModal('${pt.fgpn}', '${po.id}')" title="View BOM materials">${pt.fgpn}</td>
+                    <td class="cell-primary fw-600" style="font-family:monospace">${pt.fgpn}</td>
                     <td>${pt.desc}</td>
                     <td>${pt.qty} u</td>
                     <td style="color:var(--green); font-weight:600">${pt.launched} u</td>
@@ -5352,8 +5352,8 @@ function renderPODetailPage(poId, project) {
                         <span style="font-size:11px; font-weight:600; min-width:36px; text-align:right">${pct}%</span>
                       </div>
                     </td>
-                    <td><button class="btn btn-outline" style="padding:5px 9px; font-size:11px" onclick="showPartBOMModal('${pt.fgpn}', '${po.id}')">View materials</button></td>
-                  </tr>`;
+                    <td><button id="${inlineBomRowId(po.id, pt.fgpn, 'detail')}-button" class="btn btn-outline" style="padding:5px 9px; font-size:11px" aria-expanded="false" onclick="toggleInlineBom('${po.id}','${pt.fgpn}','detail')">Materials <span aria-hidden="true">&#9662;</span></button></td>
+                  </tr>${renderInlineBomRow(po, pt, 7, 'detail')}`;
               }).join('')}
             </tbody>
           </table>
@@ -5707,6 +5707,31 @@ function getActiveBomVersion(projectId, fgpn) {
 function getActiveBomLines(projectId, fgpn) {
   const active = getActiveBomVersion(projectId, fgpn);
   return active ? (state.bomData || []).filter(item => item.projectId === projectId && item.fgpn === fgpn && item.versionId === active.id) : [];
+}
+
+function inlineBomRowId(poId, fgpn, context) {
+  return `inline-bom-${context}-${poId}-${fgpn}`.replace(/[^a-zA-Z0-9_-]/g, '-');
+}
+
+function toggleInlineBom(poId, fgpn, context) {
+  const row = document.getElementById(inlineBomRowId(poId, fgpn, context));
+  const button = document.getElementById(inlineBomRowId(poId, fgpn, context) + '-button');
+  if (!row || !button) return;
+  const willOpen = row.style.display === 'none';
+  row.style.display = willOpen ? 'table-row' : 'none';
+  button.setAttribute('aria-expanded', String(willOpen));
+  button.innerHTML = `${willOpen ? 'Hide' : 'Materials'} <span aria-hidden="true">${willOpen ? '&#9652;' : '&#9662;'}</span>`;
+}
+
+function renderInlineBomRow(po, part, columnCount, context) {
+  const version = getActiveBomVersion(po.project, part.fgpn);
+  const lines = getActiveBomLines(po.project, part.fgpn);
+  const rowId = inlineBomRowId(po.id, part.fgpn, context);
+  return `<tr id="${rowId}" style="display:none"><td colspan="${columnCount}" style="padding:0; background:var(--surface-subtle)">
+    <div style="padding:14px 18px 16px; border-left:3px solid ${version ? 'var(--accent)' : 'var(--red)'}">
+      <div class="flex-between" style="margin-bottom:10px"><div><strong style="font-size:13px">${part.fgpn} material requirements</strong><div class="text-xs" style="margin-top:3px">${version ? `Active BOM v${version.version} / ${version.file}` : 'No active BOM for this project part number'}</div></div>${version ? `<span class="badge green">${lines.length} materials</span>` : `<span class="badge red">BOM missing</span>`}</div>
+      ${lines.length ? `<div class="table-wrap"><table style="font-size:12px"><thead><tr><th>Material part number</th><th>Description</th><th>Qty / finished unit</th><th>Required for ${part.qty} units</th><th>UOM</th></tr></thead><tbody>${lines.map(line => `<tr><td class="cell-primary fw-600">${line.component}</td><td>${line.componentDesc}</td><td>${line.qtyPerUnit}</td><td class="fw-600">${(line.qtyPerUnit * part.qty).toLocaleString()}</td><td>${line.uom || 'unit'}</td></tr>`).join('')}</tbody></table></div>` : `<div class="text-xs">Upload and activate a BOM from the project BOM page before simulation or launch.</div>`}
+    </div></td></tr>`;
 }
 
 function getProjectPartNumbers(projectId) {
