@@ -471,11 +471,11 @@ const state = {
     { id: 'DEL-2024-015', project: 'PRJ-001', po: 'PO-2024-021', fgpn: 'BMW-S7-001', description: 'Front Left Seat', client: 'BMW Group', qty: 75, method: 'Camion', transportCost: 380, date: '02/07', week: 27, status: 'Delivered', unitPrice: 60, value: 4500, confirmationDate: '02/07 15:30', confirmationMethod: 'Signed delivery note', confirmer: 'Marc Dupuy', proof: 'signed_delivery_DEL-2024-015.pdf' }
   ],
   whDeliveries: [
-    { id: 'LAU-2024-06', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:30},{poId:'PO-2024-018',fgpn:'BMW-S7-001-R',desc:'Front Right Seat',qty:20}], code: 'K7-2F9', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:60},{id:'THR-11',desc:'Black Sewing Thread',qty:18}], status: 'signed_pending', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_06.pdf', uploader: 'Nadia Wafa', timestamp: '08/07 08:30', requiredDeliveryLabel:'08/07/2026 10:00', receiver: 'Sigma Moussa', expiresLabel:'10/07/2026 08:30', used:false },
-    { id: 'LAU-2024-05', project: 'PRJ-001', poIds: ['PO-2024-019'], launchItems: [{poId:'PO-2024-019',fgpn:'BMW-S7-002',desc:'Leather Headrest',qty:120}], code: 'A3-9G1', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:180},{id:'ROL-07',desc:'Foam Roll',qty:96}], status: 'validated', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_05.pdf', uploader: 'Nadia Wafa', timestamp: '07/07 14:00', requiredDeliveryLabel:'07/07/2026 16:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-05.pdf', used:true },
-    { id: 'LAU-2024-07', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:50}], code: null, matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:100},{id:'THR-11',desc:'Black Sewing Thread',qty:30}], status: 'planned', meetingDecision:'pending', meetingMinutesFile:null, uploader: null, timestamp: '14/07 09:00', receiver: null },
-    { id: 'LAU-2024-08', project: 'PRJ-002', poIds: ['PO-2024-020'], launchItems: [{poId:'PO-2024-020',fgpn:'VW-TIG-003',desc:'Rear Backrest Assembly',qty:70},{poId:'PO-2024-020',fgpn:'VW-TIG-003-L',desc:'Rear Lumbar Support',qty:30}], code: 'Q5-8TR', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:194},{id:'FBR-01',desc:'Fiberglass',qty:114}], status: 'validated', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_08.pdf', uploader: 'Nadia Wafa', timestamp: '18/07 10:00', requiredDeliveryLabel:'18/07/2026 12:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-08.pdf', used:true },
-    { id: 'LAU-2024-04', project: 'PRJ-001', poIds: ['PO-2024-021'], launchItems: [{poId:'PO-2024-021',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:75}], code: 'D4-6KM', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:150},{id:'THR-11',desc:'Black Sewing Thread',qty:45}], status: 'validated', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_04.pdf', uploader: 'Nadia Wafa', timestamp: '01/07 09:20', requiredDeliveryLabel:'01/07/2026 12:00', receiver: 'Sigma Moussa', signedFile:'reception_LAU-2024-04.pdf', used:true }
+    { id: 'LAU-2024-06', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:30},{poId:'PO-2024-018',fgpn:'BMW-S7-001-R',desc:'Front Right Seat',qty:20}], code: 'K7-2F9', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:60},{id:'THR-11',desc:'Black Sewing Thread',qty:18}], status: 'signed_pending', productionStatus:'In Progress', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_06.pdf', uploader: 'Nadia Wafa', timestamp: '08/07 08:30', requiredDeliveryLabel:'08/07/2026 10:00', receiver: 'Sigma Moussa', expiresLabel:'10/07/2026 08:30', used:false },
+    { id: 'LAU-2024-05', project: 'PRJ-001', poIds: ['PO-2024-019'], launchItems: [{poId:'PO-2024-019',fgpn:'BMW-S7-002',desc:'Leather Headrest',qty:120}], code: 'A3-9G1', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:180},{id:'ROL-07',desc:'Foam Roll',qty:96}], status: 'validated', productionStatus:'Done', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_05.pdf', uploader: 'Nadia Wafa', timestamp: '07/07 14:00', requiredDeliveryLabel:'07/07/2026 16:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-05.pdf', used:true },
+    { id: 'LAU-2024-07', project: 'PRJ-001', poIds: ['PO-2024-018'], launchItems: [{poId:'PO-2024-018',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:50}], code: null, matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:100},{id:'THR-11',desc:'Black Sewing Thread',qty:30}], status: 'planned', productionStatus:'Planned', meetingDecision:'pending', meetingMinutesFile:null, uploader: null, timestamp: '14/07 09:00', receiver: null },
+    { id: 'LAU-2024-08', project: 'PRJ-002', poIds: ['PO-2024-020'], launchItems: [{poId:'PO-2024-020',fgpn:'VW-TIG-003',desc:'Rear Backrest Assembly',qty:70},{poId:'PO-2024-020',fgpn:'VW-TIG-003-L',desc:'Rear Lumbar Support',qty:30}], code: 'Q5-8TR', matList: [{id:'PLX-02',desc:'Flexible Plastic',qty:194},{id:'FBR-01',desc:'Fiberglass',qty:114}], status: 'validated', productionStatus:'Done', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_08.pdf', uploader: 'Nadia Wafa', timestamp: '18/07 10:00', requiredDeliveryLabel:'18/07/2026 12:00', receiver: 'Rachid Bel', signedFile:'reception_LAU-2024-08.pdf', used:true },
+    { id: 'LAU-2024-04', project: 'PRJ-001', poIds: ['PO-2024-021'], launchItems: [{poId:'PO-2024-021',fgpn:'BMW-S7-001',desc:'Front Left Seat',qty:75}], code: 'D4-6KM', matList: [{id:'ALU-04',desc:'Aluminium 4mm',qty:150},{id:'THR-11',desc:'Black Sewing Thread',qty:45}], status: 'validated', productionStatus:'Done', meetingDecision:'approved', meetingMinutesFile:'PV_LAUNCH_2024_04.pdf', uploader: 'Nadia Wafa', timestamp: '01/07 09:20', requiredDeliveryLabel:'01/07/2026 12:00', receiver: 'Sigma Moussa', signedFile:'reception_LAU-2024-04.pdf', used:true }
   ],
   refJit: [
     { label: 'BMW Group', code: 'BMW', status: 'active' },
@@ -594,7 +594,9 @@ const state = {
 
 state.poLifecycleFilter = 'all';
 state.shopParts = [
-  { id:'SHOP-001', poId:'PO-2024-019', fgpn:'BMW-S7-002', partNumber:'PCS-HD-442', description:'Headrest foam insert', qty:24, recordedBy:'Samir El Idrissi', recordedAt:'08/07 13:20' }
+  { id:'SHOP-001', launchId:'LAU-2024-05', poId:'PO-2024-019', fgpn:'BMW-S7-002', partNumber:'PCS-HD-442', description:'Leather Headrest', qty:120, recordedBy:'Samir El Idrissi', recordedAt:'08/07 13:20' },
+  { id:'SHOP-002', launchId:'LAU-2024-06', poId:'PO-2024-018', fgpn:'BMW-S7-001', partNumber:'PCS-FL-001', description:'Front Left Seat', qty:30, recordedBy:'Samir El Idrissi', recordedAt:'08/07 14:10' },
+  { id:'SHOP-003', launchId:'LAU-2024-06', poId:'PO-2024-018', fgpn:'BMW-S7-001-R', partNumber:'PCS-FR-001', description:'Front Right Seat', qty:20, recordedBy:'Samir El Idrissi', recordedAt:'08/07 14:15' }
 ];
 
 // ══════════════════════════════════════════════
@@ -2004,9 +2006,10 @@ function derivePOStatus(po) {
   const fullyLaunched = launchedQty >= Number(po.qty || 0);
   const relevantLaunches = launches.filter(launch => (launch.launchItems || []).some(item => item.poId === po.id && item.qty > 0));
   const warehouseVerified = relevantLaunches.length > 0 && relevantLaunches.every(launch => launch.status === 'validated' && launch.signedFile);
+  const productionComplete = relevantLaunches.length > 0 && relevantLaunches.every(launch => launch.productionStatus === 'Done');
   if (confirmedQty >= po.qty) return 'Delivered';
-  if (fullyLaunched && warehouseVerified && shipments.some(item => item.status !== 'Delivered')) return 'Packaged';
-  if (fullyLaunched && warehouseVerified) return 'Done';
+  if (fullyLaunched && productionComplete && warehouseVerified && shipments.some(item => item.status !== 'Delivered')) return 'Packaged';
+  if (fullyLaunched && productionComplete && warehouseVerified) return 'Done';
   if (launchedQty > 0 || relevantLaunches.some(launch => launch.meetingDecision === 'approved')) return 'In Progress';
   return 'Unplanned';
 }
@@ -2015,11 +2018,13 @@ function getPOStatusEvidence(po) {
   const launches = getPOLaunches(po.id);
   const shipments = getPoShipments(po.id);
   const approved = launches.filter(launch => launch.meetingDecision === 'approved').length;
+  const productionDone = launches.filter(launch => launch.productionStatus === 'Done').length;
   const verified = launches.filter(launch => launch.status === 'validated' && launch.signedFile).length;
   const confirmedQty = shipments.filter(item => item.status === 'Delivered').reduce((sum, item) => sum + Number(item.qty || 0), 0);
   return [
     { label:'Launch approval', value:`${approved}/${launches.length} launches approved`, ok:approved>0 },
     { label:'Production scope', value:`${po.launchedQty||0}/${po.qty} units launched`, ok:Number(po.launchedQty||0)>=po.qty },
+    { label:'Shop TL completion', value:`${productionDone}/${launches.length} launches done`, ok:launches.length>0&&productionDone===launches.length },
     { label:'Warehouse verification', value:`${verified}/${launches.length} signed transfers validated`, ok:launches.length>0&&verified===launches.length },
     { label:'Customer delivery', value:`${confirmedQty}/${po.qty} units confirmed`, ok:confirmedQty>=po.qty }
   ];
@@ -2040,13 +2045,14 @@ function renderLaunchAccordions(poId) {
     const quantity = items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
     const codeState = !launch.code ? 'Not generated' : launch.used ? 'Used / invalid' : launch.code;
     return `<details style="border:1px solid var(--border);border-radius:6px;background:#fff;min-width:300px">
-      <summary style="cursor:pointer;padding:8px 10px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px;list-style-position:inside"><span>${launch.id} · ${quantity} u</span><span class="badge ${launch.status==='validated'?'green':launch.status==='planned'?'grey':'orange'}">${launchStatusLabel(launch.status)}</span></summary>
+      <summary style="cursor:pointer;padding:8px 10px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px;list-style-position:inside"><span>${launch.id} · ${quantity} u</span><span class="badge ${launch.productionStatus==='Done'?'green':launch.productionStatus==='In Progress'?'blue':'grey'}">Production: ${launch.productionStatus||'Planned'}</span></summary>
       <div style="padding:0 10px 10px;border-top:1px solid var(--border)">
         <div class="table-wrap" style="margin-top:8px"><table style="min-width:520px"><thead><tr><th>FGPN</th><th>Description</th><th>Launched</th></tr></thead><tbody>${items.map(item=>`<tr><td><code>${item.fgpn}</code></td><td>${item.desc}</td><td class="fw-600">${item.qty} u</td></tr>`).join('')}</tbody></table></div>
         <div class="text-xs" style="margin-top:8px"><strong>Materials:</strong> ${(launch.matList||[]).map(material=>`${material.id} ${material.qty}u`).join(', ') || 'Pending calculation'}</div>
         <div class="text-xs" style="margin-top:5px"><strong>Meeting:</strong> ${launch.meetingDecision==='approved'?'Approved':'Pending'} · ${launch.meetingMinutesFile||launch.pvFile||'No meeting minutes uploaded'}</div>
         <div class="text-xs" style="margin-top:5px"><strong>Warehouse code:</strong> <code>${codeState}</code>${launch.expiresLabel?` · valid until ${launch.expiresLabel}`:''}</div>
-        <div class="text-xs" style="margin-top:5px"><strong>Execution:</strong> ${launchStatusLabel(launch.status)} · Receiver ${launch.receiver||'not selected'} · ${launch.signedFile||'signed reception pending'}</div>
+        <div class="text-xs" style="margin-top:5px"><strong>Production:</strong> ${launch.productionStatus||'Planned'} · controlled by Shop TL</div>
+        <div class="text-xs" style="margin-top:5px"><strong>Warehouse:</strong> ${launchStatusLabel(launch.status)} · Receiver ${launch.receiver||'not selected'} · ${launch.signedFile||'signed reception pending'}</div>
       </div>
     </details>`;
   }).join('')}</div>`;
@@ -4649,37 +4655,65 @@ function renderWpDash() {
 
 
 // ══════════════════════════════════════════════
+function getShopLaunches() {
+  return state.whDeliveries.filter(launch => (launch.launchItems || []).length > 0 && ['In Progress','Done'].includes(launch.productionStatus));
+}
+
+function getShopRecordedQty(launchId, poId, fgpn) {
+  return state.shopParts.filter(record => record.launchId === launchId && record.poId === poId && record.fgpn === fgpn).reduce((sum, record) => sum + Number(record.qty || 0), 0);
+}
+
 function getShopActiveLines() {
-  return state.pos.filter(po => Number(po.launchedQty || 0) > 0 && po.status !== 'Delivered').flatMap(po =>
-    (po.parts || []).filter(part => Number(part.launched || 0) > 0).map(part => ({...part, poId:po.id, stockCode:po.stockCode, project:po.project, poStatus:po.status}))
-  );
+  return getShopLaunches().flatMap(launch => (launch.launchItems || []).map(item => {
+    const recorded = getShopRecordedQty(launch.id, item.poId, item.fgpn);
+    return {...item, launchId:launch.id, project:launch.project, productionStatus:launch.productionStatus, recorded, remaining:Math.max(0,Number(item.qty||0)-recorded)};
+  }));
 }
 
 function renderShopDash() {
+  const launches = getShopLaunches();
   const lines = getShopActiveLines();
-  const todayQty = state.shopParts.reduce((sum, record) => sum + Number(record.qty || 0), 0);
-  return `<div class="page"><div class="page-header"><h1 class="page-title">Production Overview</h1><p class="page-subtitle">Launched FGPNs available for shop-floor piece recording</p></div>
-    <div class="metric-strip"><div class="metric-cell"><span>Active POs</span><strong>${new Set(lines.map(line=>line.poId)).size}</strong></div><div class="metric-cell"><span>Launched FGPNs</span><strong>${lines.length}</strong></div><div class="metric-cell"><span>Pieces recorded</span><strong>${todayQty}</strong></div><div class="metric-cell"><span>Open quantity</span><strong>${lines.reduce((sum,line)=>sum+Math.max(0,line.qty-line.launched),0)}</strong></div></div>
-    <div class="overview-panel"><div class="flex-between" style="margin-bottom:12px"><h2>Active production lines</h2><button class="btn btn-primary" onclick="navigateTo('shop-parts')">Record pieces</button></div><div class="table-wrap"><table><thead><tr><th>Project</th><th>PO</th><th>Stock code</th><th>FGPN</th><th>Description</th><th>Launched</th><th>Status</th></tr></thead><tbody>${lines.map(line=>`<tr><td>${line.project}</td><td class="fw-600">${line.poId}</td><td><code>${line.stockCode}</code></td><td><code>${line.fgpn}</code></td><td>${line.desc}</td><td>${line.launched} u</td><td><span class="badge blue">${line.poStatus}</span></td></tr>`).join('')}</tbody></table></div></div></div>`;
+  const recordedQty = state.shopParts.reduce((sum, record) => sum + Number(record.qty || 0), 0);
+  return `<div class="page"><div class="page-header"><h1 class="page-title">Production Launch Control</h1><p class="page-subtitle">Shop TL owns launch production completion from In Progress to Done</p></div>
+    <div class="metric-strip"><div class="metric-cell"><span>In-progress launches</span><strong>${launches.filter(launch=>launch.productionStatus==='In Progress').length}</strong></div><div class="metric-cell"><span>Completed launches</span><strong>${launches.filter(launch=>launch.productionStatus==='Done').length}</strong></div><div class="metric-cell"><span>Pieces recorded</span><strong>${recordedQty}</strong></div><div class="metric-cell"><span>Quantity still to record</span><strong>${lines.reduce((sum,line)=>sum+line.remaining,0)}</strong></div></div>
+    <div class="overview-panel"><div class="flex-between" style="margin-bottom:12px"><div><h2>Launch production status</h2><div class="text-xs" style="margin-top:4px">A launch can be marked Done only after all its FGPN quantities are recorded.</div></div><button class="btn btn-primary" onclick="navigateTo('shop-parts')">Record pieces</button></div><div class="table-wrap"><table><thead><tr><th>Launch</th><th>Project</th><th>PO / FGPN scope</th><th>Target</th><th>Recorded</th><th>Status</th><th>Verification</th></tr></thead><tbody>${launches.map(launch=>{const launchLines=lines.filter(line=>line.launchId===launch.id);const target=launchLines.reduce((sum,line)=>sum+Number(line.qty||0),0);const recorded=launchLines.reduce((sum,line)=>sum+Math.min(line.recorded,Number(line.qty||0)),0);const missing=Math.max(0,target-recorded);const ready=missing===0;return `<tr><td class="fw-600">${launch.id}</td><td>${launch.project}</td><td>${launchLines.map(line=>`${line.poId} · <code>${line.fgpn}</code> · ${line.qty}u`).join('<br>')}</td><td>${target} u</td><td>${recorded} u</td><td><span class="badge ${launch.productionStatus==='Done'?'green':'blue'}">${launch.productionStatus}</span>${launch.completedAt?`<div class="text-xs" style="margin-top:4px">${launch.completedAt} · ${launch.completedBy}</div>`:''}</td><td>${launch.productionStatus==='Done'?`<span class="badge green">Verified complete</span>`:`<button class="btn ${ready?'btn-primary':'btn-outline'}" ${ready?'':'disabled'} onclick="actionCompleteShopLaunch('${launch.id}')">Mark Done</button><div class="text-xs" style="margin-top:5px">${ready?'All quantities recorded':`${missing} u still missing`}</div>`}</td></tr>`;}).join('')}</tbody></table></div></div></div>`;
 }
 
 function renderShopParts() {
-  const lines = getShopActiveLines();
-  return `<div class="page"><div class="page-header"><h1 class="page-title">Record New Parts</h1><p class="page-subtitle">Shop TL · Records are timestamped and linked to an active launched PO</p></div>
-    <div class="grid-2"><div class="overview-panel"><h2 style="margin-bottom:16px">New piece record</h2><div class="form-group"><label class="form-label">PO / launched FGPN *</label><select class="form-input form-select" id="shop-line">${lines.map(line=>`<option value="${line.poId}__${line.fgpn}">${line.poId} · ${line.fgpn} · ${line.desc}</option>`).join('')}</select></div><div class="grid-2"><div class="form-group"><label class="form-label">Part number *</label><input class="form-input" id="shop-part-number" placeholder="PCS-000-000"></div><div class="form-group"><label class="form-label">Quantity *</label><input class="form-input" id="shop-part-qty" type="number" min="1" value="1"></div></div><div class="form-group"><label class="form-label">Description *</label><input class="form-input" id="shop-part-description" placeholder="Piece description"></div><button class="btn btn-primary" style="width:100%;justify-content:center" onclick="actionRecordShopPart()">Save piece record</button></div>
-    <div class="overview-panel"><h2 style="margin-bottom:16px">Recent records</h2><div class="table-wrap"><table><thead><tr><th>Record</th><th>PO / FGPN</th><th>Part</th><th>Qty</th><th>Recorded</th></tr></thead><tbody>${state.shopParts.map(record=>`<tr><td class="fw-600">${record.id}</td><td>${record.poId}<div class="text-xs">${record.fgpn}</div></td><td><code>${record.partNumber}</code><div class="text-xs">${record.description}</div></td><td>${record.qty}</td><td>${record.recordedAt}<div class="text-xs">${record.recordedBy}</div></td></tr>`).join('')}</tbody></table></div></div></div></div>`;
+  const lines = getShopActiveLines().filter(line => line.productionStatus === 'In Progress' && line.remaining > 0);
+  return `<div class="page"><div class="page-header"><h1 class="page-title">Record Produced Pieces</h1><p class="page-subtitle">Shop TL · Every quantity is linked to a specific launch, PO, and FGPN</p></div>
+    <div class="grid-2"><div class="overview-panel"><h2 style="margin-bottom:16px">New production record</h2><div class="form-group"><label class="form-label">Launch / PO / FGPN *</label><select class="form-input form-select" id="shop-line">${lines.map(line=>`<option value="${line.launchId}__${line.poId}__${line.fgpn}">${line.launchId} · ${line.poId} · ${line.fgpn} · ${line.remaining}u remaining</option>`).join('')}</select></div><div class="grid-2"><div class="form-group"><label class="form-label">Piece reference *</label><input class="form-input" id="shop-part-number" placeholder="PCS-000-000"></div><div class="form-group"><label class="form-label">Produced quantity *</label><input class="form-input" id="shop-part-qty" type="number" min="1" value="1"></div></div><div class="form-group"><label class="form-label">Description *</label><input class="form-input" id="shop-part-description" placeholder="Produced piece description"></div><button class="btn btn-primary" style="width:100%;justify-content:center" onclick="actionRecordShopPart()" ${lines.length?'':'disabled'}>Save production record</button>${lines.length?'':`<div class="alert-band blue" style="margin-top:12px"><span>No incomplete launch quantities remain to record.</span></div>`}</div>
+    <div class="overview-panel"><h2 style="margin-bottom:16px">Recent records</h2><div class="table-wrap"><table><thead><tr><th>Record</th><th>Launch</th><th>PO / FGPN</th><th>Piece</th><th>Qty</th><th>Recorded</th></tr></thead><tbody>${state.shopParts.map(record=>`<tr><td class="fw-600">${record.id}</td><td>${record.launchId||'-'}</td><td>${record.poId}<div class="text-xs">${record.fgpn}</div></td><td><code>${record.partNumber}</code><div class="text-xs">${record.description}</div></td><td>${record.qty}</td><td>${record.recordedAt}<div class="text-xs">${record.recordedBy}</div></td></tr>`).join('')}</tbody></table></div></div></div></div>`;
 }
 
 function actionRecordShopPart() {
   const selection = document.getElementById('shop-line')?.value || '';
-  const [poId, fgpn] = selection.split('__');
+  const [launchId, poId, fgpn] = selection.split('__');
   const partNumber = document.getElementById('shop-part-number')?.value.trim();
   const description = document.getElementById('shop-part-description')?.value.trim();
   const qty = Number(document.getElementById('shop-part-qty')?.value);
-  if (!poId || !fgpn || !partNumber || !description || !Number.isFinite(qty) || qty <= 0) { alert('PO, FGPN, part number, description, and a positive quantity are required.'); return; }
+  const launch = state.whDeliveries.find(item=>item.id===launchId && item.productionStatus==='In Progress');
+  const line = launch?.launchItems?.find(item=>item.poId===poId && item.fgpn===fgpn);
+  const remaining = line ? Math.max(0,Number(line.qty||0)-getShopRecordedQty(launchId,poId,fgpn)) : 0;
+  if (currentActor !== 'shop' || !launch || !line || !partNumber || !description || !Number.isFinite(qty) || qty <= 0) { alert('Launch, PO, FGPN, piece reference, description, and a positive quantity are required.'); return; }
+  if (qty > remaining) { alert(`Only ${remaining} unit(s) remain for ${fgpn} in ${launchId}.`); return; }
   const id = `SHOP-${String(state.shopParts.length + 1).padStart(3,'0')}`;
-  state.shopParts.unshift({id,poId,fgpn,partNumber,description,qty,recordedBy:'Samir El Idrissi',recordedAt:_extNow()});
-  if (typeof logAudit === 'function') logAudit(`Shop piece recorded ${id}`, '', `${poId} · ${fgpn} · ${partNumber} · ${qty} u`, 'Shop TL production record');
+  state.shopParts.unshift({id,launchId,poId,fgpn,partNumber,description,qty,recordedBy:'Samir El Idrissi',recordedAt:_extNow()});
+  if (typeof logAudit === 'function') logAudit(`Shop production recorded ${id}`, '', `${launchId} · ${poId} · ${fgpn} · ${qty} u`, 'Shop TL production evidence');
+  renderPageContent();
+}
+
+function actionCompleteShopLaunch(launchId) {
+  if (currentActor !== 'shop') return;
+  const launch = state.whDeliveries.find(item=>item.id===launchId);
+  if (!launch || launch.productionStatus !== 'In Progress') return;
+  const incomplete = (launch.launchItems||[]).filter(line=>getShopRecordedQty(launchId,line.poId,line.fgpn)<Number(line.qty||0));
+  if (incomplete.length) { alert(`Cannot mark ${launchId} Done. Complete: ${incomplete.map(line=>`${line.poId} / ${line.fgpn} (${Number(line.qty||0)-getShopRecordedQty(launchId,line.poId,line.fgpn)} u missing)`).join(', ')}.`); return; }
+  launch.productionStatus = 'Done';
+  launch.completedBy = 'Samir El Idrissi';
+  launch.completedAt = _extNow();
+  if (typeof logAudit === 'function') logAudit(`Launch production completed ${launchId}`, 'In Progress', 'Done', 'All launch quantities recorded by Shop TL');
+  syncProjectProgress(launch.project);
   renderPageContent();
 }
 
@@ -5173,7 +5207,7 @@ function renderPODetailPage(poId, project) {
 
       <div class="overview-panel" style="margin-bottom:24px">
         <div class="flex-between" style="margin-bottom:12px"><div><h2>Automatic status verification</h2><div class="text-xs" style="margin-top:4px">PO status is computed from launch and delivery evidence. Launch Engineers cannot change it manually.</div></div><span class="badge blue">System controlled</span></div>
-        <div class="metric-strip" style="grid-template-columns:repeat(4,1fr);margin:0">${statusEvidence.map(item=>`<div class="metric-cell"><span>${item.label}</span><strong style="font-size:13px;color:${item.ok?'var(--green)':'var(--text-main)'}">${item.value}</strong></div>`).join('')}</div>
+        <div class="metric-strip" style="grid-template-columns:repeat(${statusEvidence.length},minmax(0,1fr));margin:0">${statusEvidence.map(item=>`<div class="metric-cell"><span>${item.label}</span><strong style="font-size:13px;color:${item.ok?'var(--green)':'var(--text-main)'}">${item.value}</strong></div>`).join('')}</div>
       </div>
 
       <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
@@ -6164,6 +6198,7 @@ function actionSaveWarehouseInstruction() {
     code: deliveryCode,
     matList,
     status: 'authorized',
+    productionStatus: 'In Progress',
     meetingDecision: launch.meetingDecision,
     meetingMinutesFile: launch.pvFile,
     uploader: null,
