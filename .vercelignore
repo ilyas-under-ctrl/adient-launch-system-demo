@@ -1,0 +1,9 @@
+dist
+node_modules
+*.log
+*.dbml
+*.drawio
+generate_launch_erd.py
+index.react-backup.html
+launch_system_schema_review.md
+SRS_Launch_System_v2-bis.md

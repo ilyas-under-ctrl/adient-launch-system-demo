@@ -284,6 +284,7 @@
     let projectSort = { key: null, dir: 1 };
     let projectPage = 1;
     let projectForm = { mode: 'create', projectId: '', draft: {}, errors: {} };
+    let projectBomFilters = { search:'', fgpn:'', type:'' };
     let projectOpsSelectedPo = '';
     let poRollback = { open:false, po:'', reason:'' };
 
@@ -1177,7 +1178,47 @@
     }
 
     function confirmDeletePo(poId) {
-      openModal('Delete ' + poId + '?', 'This purchase order and its linked PN records will be permanently removed. This cannot be undone.');
+      const po = POS.find(item => item.id === poId);
+      if (!po) return;
+      document.getElementById('modalTitle').textContent = `Delete ${poId}?`;
+      document.getElementById('modalBody').innerHTML = `<span class="delete-confirm-copy">This permanently removes the purchase order and its linked part-number records.</span><label class="delete-confirm-label">Type <strong>DELETE ME</strong> to confirm</label><input id="deletePoPhrase" class="delete-confirm-input" autocomplete="off" placeholder="DELETE ME" oninput="validateDeletePoPhrase(this.value)">`;
+      modalConfirmAction = () => deletePoRecord(poId);
+      const confirmButton = document.getElementById('modalConfirmBtn');
+      confirmButton.textContent = 'Delete PO';
+      confirmButton.classList.add('danger-action');
+      confirmButton.disabled = true;
+      document.getElementById('modalOverlay').classList.add('open');
+      requestAnimationFrame(() => document.getElementById('deletePoPhrase')?.focus());
+    }
+    function validateDeletePoPhrase(value) {
+      const confirmButton = document.getElementById('modalConfirmBtn');
+      if (confirmButton) confirmButton.disabled = value.trim() !== 'DELETE ME';
+    }
+    function deletePoRecord(poId) {
+      const poIndex = POS.findIndex(item => item.id === poId);
+      if (poIndex < 0) return;
+      const po = POS[poIndex];
+      POS.splice(poIndex,1);
+      for (let index = PNS.length - 1; index >= 0; index -= 1) {
+        if (PNS[index].po === poId) PNS.splice(index,1);
+      }
+      for (let index = PO_BOM_FILES.length - 1; index >= 0; index -= 1) {
+        if (PO_BOM_FILES[index].po === poId) PO_BOM_FILES.splice(index,1);
+      }
+      AUDIT_LOGS.unshift({
+        id:`AUD-${10400 + AUDIT_LOGS.length}`,
+        date:new Date().toISOString().slice(0,16).replace('T',' '),
+        user:ROLE_PERSONA[currentRole].name,
+        module:'Purchase Orders',
+        action:'Purchase order deleted',
+        entity:poId,
+        project:po.project,
+        po:poId,
+        evidence:'Typed confirmation: DELETE ME',
+        details:`${poId} and its linked part-number records were deleted.`,
+      });
+      closeModal();
+      renderAll();
     }
     function confirmDeleteProject(projectId) {
       const project = PROJECTS.find(p => p.id === projectId || p.name === projectId);
@@ -1819,7 +1860,6 @@
       );
       const missingBoms = PNS.filter(part => projectNames.has(part.project) && part.bom !== 'Uploaded');
       const lowStock = MATERIALS.filter(material => material.warehouse < getThreshold(material.code));
-      const riskProjects = projects.filter(project => project.status === 'At Risk' || project.status === 'Blocked');
       const lifecycleCounts = PO_STATUS_FLOW.map(status => ({
         status,
         count:pos.filter(po => poLifecycle(po.id) === status).length,
@@ -1844,7 +1884,7 @@
         ...missingBoms.slice(0, 2).map(part => ({
           tone:'amber', icon:'bom', title:`BOM missing for ${part.pn}`, meta:`${part.po} · ${part.project}`, action:`openPo('${part.po}','Part Numbers')`, label:'Open PO'
         })),
-      ];
+      ].filter(item => !/\bis blocked\b|\bis at risk\b/i.test(item.title));
 
       const deliveryActivity = [
         ...manufacturing.map(delivery => ({
@@ -1891,7 +1931,7 @@
         <section class="manager-kpi-grid">
           <button class="manager-kpi-card" onclick="navigate('project-list')">
             <span class="manager-kpi-icon blue">${icon('projects','')}</span>
-            <span><small>Portfolio Projects</small><strong>${projects.length}</strong><em>${riskProjects.length} require attention</em></span>
+            <span><small>Portfolio Projects</small><strong>${projects.length}</strong><em>Assigned launch portfolio</em></span>
           </button>
           <button class="manager-kpi-card" onclick="navigate('project-list')">
             <span class="manager-kpi-icon navy">${icon('po','')}</span>
@@ -1919,19 +1959,16 @@
 
         <div class="manager-main-grid">
           <section class="manager-panel manager-portfolio-panel">
-            <div class="manager-panel-head"><div><h2>Project Portfolio</h2><span>Schedule, PO lifecycle, BOM and health</span></div><button class="btn sm" onclick="navigate('project-list')">View all ${icon('chevRight','')}</button></div>
-            <div class="manager-table-wrap"><table class="manager-project-table"><thead><tr><th>Project</th><th>Responsible</th><th>Schedule</th><th>PO Lifecycle</th><th>BOM</th><th>Health</th><th></th></tr></thead><tbody>
+            <div class="manager-panel-head"><div><h2>Project Portfolio</h2><span>PO lifecycle and BOM coverage</span></div><button class="btn sm" onclick="navigate('project-list')">View all ${icon('chevRight','')}</button></div>
+            <div class="manager-table-wrap"><table class="manager-project-table"><thead><tr><th>Project</th><th>Responsible</th><th>PO Lifecycle</th><th>BOM</th><th></th></tr></thead><tbody>
               ${projects.map(project => {
                 const projectPos = posForProject(project.name);
                 const readiness = projectBomReadiness(project.name);
-                const healthType = project.health >= 80 ? 'success' : project.health >= 60 ? 'info' : project.health >= 40 ? 'warning' : 'danger';
                 return `<tr onclick="openProject('${project.id}')">
                   <td><strong>${project.name}</strong><span>${project.id} · ${project.customer}</span></td>
                   <td><strong>${project.engineer}</strong><span>${project.site}</span></td>
-                  <td><div class="manager-progress-head"><strong>${project.progress}%</strong>${statusBadge(project.status,project.statusType)}</div><div class="manager-progress"><i style="width:${project.progress}%"></i></div><span>Target ${project.targetDate}</span></td>
                   <td><strong>${projectPos.length} purchase order${projectPos.length === 1 ? '' : 's'}</strong><div class="manager-lifecycle-summary">${lifecycleSummary(projectPos)}</div></td>
                   <td><strong>${readiness.percent}%</strong><div class="manager-progress bom"><i style="width:${readiness.percent}%"></i></div><span>${readiness.uploaded}/${readiness.total} PN BOMs</span></td>
-                  <td>${statusBadge(`${project.health}%`,healthType)}<span>${project.health >= 80 ? 'Healthy' : project.health >= 40 ? 'Watch' : 'Critical'}</span></td>
                   <td><button class="manager-row-open" aria-label="Open ${project.name}">${icon('chevRight','')}</button></td>
                 </tr>`;
               }).join('')}
@@ -1980,7 +2017,6 @@
               ${engineers.map(member => `<button onclick="openProject('${member.projects[0].id}')" class="manager-team-item">
                 <span class="manager-team-avatar">${member.engineer.split(' ').map(part => part[0]).join('').slice(0,2)}</span>
                 <span><strong>${member.engineer}</strong><small>${member.projects.length} project${member.projects.length === 1 ? '' : 's'} · ${member.pos.length} POs</small></span>
-                <span class="manager-team-risk ${member.risks ? 'has-risk' : ''}">${member.risks ? `${member.risks} risk` : 'On track'}</span>
                 ${icon('chevRight','')}
               </button>`).join('')}
             </div>
@@ -1997,9 +2033,7 @@
       const forecastAttainment = totalForecast ? Math.round((totalRevenue / totalForecast) * 100) : 0;
       const outstandingInvoices = INVOICES.filter(invoice => ['Outstanding','Overdue'].includes(invoice.status));
       const outstandingValue = outstandingInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
-      const projectHealth = projects.length ? Math.round(projects.reduce((sum, project) => sum + project.health, 0) / projects.length) : 0;
-      const riskProjects = projects.filter(project => project.status !== 'On Track');
-      const blockedProjects = projects.filter(project => project.status === 'Blocked');
+      const blockedProjects = [];
       const simulations = SIMULATION_HISTORY;
       const passedSimulations = simulations.filter(run => run.result === 'YES').length;
       const simulationRate = simulations.length ? Math.round((passedSimulations / simulations.length) * 100) : 0;
@@ -2041,7 +2075,7 @@
         ...missingBoms.slice(0, 1).map(part => ({
           tone:'blue', icon:'bom', title:`BOM missing for ${part.pn}`, meta:`${part.po} · ${part.project}`, action:`openProject('${PROJECTS.find(project => project.name === part.project)?.id || ''}')`, label:'Project'
         })),
-      ];
+      ].filter(item => !/\bis blocked\b|\bis at risk\b/i.test(item.title));
 
       const revenueMax = Math.max(...REVENUE_ROWS.map(row => Math.max(row.revenue,row.forecast)), 1);
       const customerActivity = [...CUST_DELIVERIES]
@@ -2072,7 +2106,7 @@
           </button>
           <button class="plant-kpi-card" onclick="navigate('project-list')">
             <span class="plant-kpi-icon blue">${icon('projects','')}</span>
-            <span><small>Portfolio Health</small><strong>${projectHealth}%</strong><em>${riskProjects.length} projects require attention</em></span>
+            <span><small>Projects</small><strong>${projects.length}</strong><em>Portfolio overview</em></span>
           </button>
           <button class="plant-kpi-card" onclick="navigate('project-list')">
             <span class="plant-kpi-icon navy">${icon('truck','')}</span>
@@ -2096,22 +2130,19 @@
 
         <div class="plant-main-grid">
           <section class="plant-panel plant-project-panel">
-            <div class="plant-panel-head"><div><h2>Project Performance</h2><span>Schedule, lifecycle, financial position and health</span></div><button class="btn sm" onclick="navigate('project-list')">View Projects ${icon('chevRight','')}</button></div>
-            <div class="plant-table-wrap"><table class="plant-project-table"><thead><tr><th>Project</th><th>Responsible</th><th>Schedule</th><th>Purchase Orders</th><th>BOM</th><th>Revenue</th><th>Health</th><th></th></tr></thead><tbody>
+            <div class="plant-panel-head"><div><h2>Project Performance</h2><span>Lifecycle, BOM coverage and financial position</span></div><button class="btn sm" onclick="navigate('project-list')">View Projects ${icon('chevRight','')}</button></div>
+            <div class="plant-table-wrap"><table class="plant-project-table"><thead><tr><th>Project</th><th>Responsible</th><th>Purchase Orders</th><th>BOM</th><th>Revenue</th><th></th></tr></thead><tbody>
               ${projects.map(project => {
                 const projectPos = posForProject(project.name);
                 const readiness = projectBomReadiness(project.name);
                 const revenue = REVENUE_ROWS.find(row => row.project === project.name) || { revenue:0, forecast:0 };
                 const lifecycle = PO_STATUS_FLOW.map(status => ({ status, count:projectPos.filter(po => poLifecycle(po.id) === status).length })).filter(item => item.count);
-                const healthType = project.health >= 80 ? 'success' : project.health >= 40 ? 'warning' : 'danger';
                 return `<tr onclick="openProject('${project.id}')">
                   <td><strong>${project.name}</strong><span>${project.id} · ${project.customer}</span></td>
                   <td><strong>${project.engineer}</strong><span>${project.site}</span></td>
-                  <td><div class="plant-progress-head"><strong>${project.progress}%</strong>${statusBadge(project.status,project.statusType)}</div><div class="plant-progress"><i style="width:${project.progress}%"></i></div><span>Target ${project.targetDate}</span></td>
                   <td><strong>${projectPos.length} purchase order${projectPos.length === 1 ? '' : 's'}</strong><div class="plant-po-summary">${lifecycle.map(item => `<span>${item.count} ${item.status}</span>`).join('')}</div></td>
                   <td><strong>${readiness.percent}%</strong><div class="plant-progress bom"><i style="width:${readiness.percent}%"></i></div><span>${readiness.uploaded}/${readiness.total} PN BOMs</span></td>
                   <td><strong>${financeMoney(revenue.revenue)}</strong><span>${revenue.forecast ? Math.round(revenue.revenue / revenue.forecast * 100) : 0}% of forecast</span></td>
-                  <td>${statusBadge(`${project.health}%`,healthType)}<span>${project.health >= 80 ? 'Healthy' : project.health >= 40 ? 'Watch' : 'Critical'}</span></td>
                   <td><button class="plant-row-open" aria-label="Open ${project.name}">${icon('chevRight','')}</button></td>
                 </tr>`;
               }).join('')}
@@ -2890,6 +2921,7 @@
           startDate: project.startDate || '2026-07-17',
           targetDate: project.targetDate || '2026-10-17',
           description: project.description || '',
+          meetingMinutesFile: project.meetingMinutesFile || '',
         } : {
           id: nextProjectId(),
           name: '',
@@ -2901,6 +2933,7 @@
           startDate: '2026-07-17',
           targetDate: '2026-10-17',
           description: '',
+          meetingMinutesFile: '',
         },
       };
       navigate('project-form');
@@ -2911,12 +2944,10 @@
     function validateProjectForm() {
       const draft = projectForm.draft;
       const errors = {};
-      ['name', 'customer', 'engineer', 'site', 'status', 'startDate', 'targetDate'].forEach(key => {
+      ['name', 'customer', 'engineer', 'status'].forEach(key => {
         if (!String(draft[key] || '').trim()) errors[key] = 'This field is required.';
       });
-      if (draft.startDate && draft.targetDate && draft.targetDate < draft.startDate) {
-        errors.targetDate = 'Target date must be on or after the start date.';
-      }
+      if (!String(draft.meetingMinutesFile || '').trim()) errors.meetingMinutesFile = 'A project creation meeting PDF is required.';
       const duplicate = PROJECTS.find(project => project.id !== projectForm.projectId && project.name.trim().toLowerCase() === String(draft.name || '').trim().toLowerCase());
       if (duplicate) errors.name = 'A project with this name already exists.';
       projectForm.errors = errors;
@@ -2949,12 +2980,13 @@
           customer: identityLocked ? existing.customer : draft.customer,
           customerRef: draft.customerRef,
           engineer: currentRole === 'manager' ? draft.engineer : existing.engineer,
-          site: draft.site,
+          site: existing.site,
           status: draft.status,
           statusType: projectStatusType(draft.status),
-          startDate: draft.startDate,
-          targetDate: draft.targetDate,
+          startDate: existing.startDate,
+          targetDate: existing.targetDate,
           description: draft.description,
+          meetingMinutesFile: draft.meetingMinutesFile,
         });
         if (oldName !== existing.name) {
           ADMIN_ASSIGNMENTS.forEach(assignment => { if (assignment.project === oldName) assignment.project = existing.name; });
@@ -2970,12 +3002,13 @@
           customer: draft.customer,
           customerRef: draft.customerRef,
           engineer: draft.engineer,
-          site: draft.site,
+          site: 'Tangier Plant 2',
           status: draft.status,
           statusType: projectStatusType(draft.status),
           startDate: draft.startDate,
           targetDate: draft.targetDate,
           description: draft.description,
+          meetingMinutesFile: draft.meetingMinutesFile,
           pos: 0,
           progress: 0,
           health: 100,
@@ -2990,7 +3023,7 @@
         SEARCH_INDEX.push({ type: 'Project', label: savedProject.name, sub: savedProject.customer, action: `openProject('${savedProject.id}')` });
       }
 
-      const changedProjectFields = previousProject ? ['name','customer','customerRef','engineer','site','status','startDate','targetDate','description'].filter(key => String(previousProject[key] || '') !== String(savedProject[key] || '')).map(key => `${key}: ${previousProject[key] || '—'} → ${savedProject[key] || '—'}`) : [];
+      const changedProjectFields = previousProject ? ['name','customer','customerRef','engineer','site','status','description','meetingMinutesFile'].filter(key => String(previousProject[key] || '') !== String(savedProject[key] || '')).map(key => `${key}: ${previousProject[key] || '—'} → ${savedProject[key] || '—'}`) : [];
       AUDIT_LOGS.unshift({
         id: `AUD-${10400 + AUDIT_LOGS.length}`,
         date: new Date().toISOString().slice(0,16).replace('T',' '),
@@ -3000,11 +3033,24 @@
         entity: `${savedProject.id} · ${savedProject.name}`,
         project: savedProject.name,
         po: '',
-        evidence:'Project master record',
+        evidence:savedProject.meetingMinutesFile,
         details: isEdit ? `Project record updated. ${changedProjectFields.length ? changedProjectFields.join('; ') : 'No field value changed.'}` : `New project created for ${savedProject.customer}; site ${savedProject.site}; assigned Launch Engineer ${savedProject.engineer}; target SOP ${savedProject.targetDate}.`,
       });
       openProject(savedProject.id,{ replace:true });
       openModal(isEdit ? 'Project updated' : 'Project created', `${savedProject.id} · ${savedProject.name} was saved successfully and is ready for purchase orders and BOM governance.`);
+    }
+    function setProjectMeetingMinutes(input) {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        input.value = '';
+        projectForm.draft.meetingMinutesFile = '';
+        projectForm.errors.meetingMinutesFile = 'Only PDF documents are accepted.';
+      } else {
+        projectForm.draft.meetingMinutesFile = file.name;
+        delete projectForm.errors.meetingMinutesFile;
+      }
+      renderPage();
     }
     function pageProjectForm() {
       const draft = projectForm.draft || {};
@@ -3017,8 +3063,10 @@
       const errorClass = key => errors[key] ? 'invalid' : '';
       const errorMessage = key => errors[key] ? `<div class="project-field-error">${errors[key]}</div>` : '';
       const engineerOptions = [...new Set(['A. Rahal', 'A. Haddad', 'S. Amrani', 'M. Idrissi', draft.engineer].filter(Boolean))];
-      const statusOptions = ['Draft', 'On Track', 'At Risk', 'Blocked'];
-      const customerOptions = [...new Set(PROJECTS.map(item => item.customer))];
+      const customerOptions = ADMIN_REFERENCE_LISTS.customers.entries
+        .filter(entry => entry.status === 'Active' || entry.label === draft.customer)
+        .map(entry => entry.label)
+        .sort((a,b) => a.localeCompare(b));
       return `<div class="project-editor-shell">
         <header class="project-editor-header">
           <div><h2>${isEdit ? `Edit Project` : 'Create Project'}</h2><span class="mono">${projectHtmlValue(draft.id || 'New project')}</span></div>
@@ -3041,13 +3089,12 @@
             </div>
             <div class="project-editor-field">
               <label>Customer <em>*</em></label>
-              <input class="project-input ${errorClass('customer')}" list="projectCustomerList" value="${projectHtmlValue(draft.customer)}" ${identityLocked ? 'readonly' : ''} oninput="projectForm.draft.customer=this.value" placeholder="Select or enter customer" aria-label="Customer"/>
-              <datalist id="projectCustomerList">${customerOptions.map(value => `<option value="${projectHtmlValue(value)}"></option>`).join('')}</datalist>
+              <select class="project-input ${errorClass('customer')}" ${identityLocked ? 'disabled' : ''} onchange="projectForm.draft.customer=this.value" aria-label="Customer">
+                <option value="" ${draft.customer ? '' : 'selected'} disabled>Select a customer</option>
+                ${customerOptions.map(value => `<option value="${projectHtmlValue(value)}" ${draft.customer === value ? 'selected' : ''}>${projectHtmlValue(value)}</option>`).join('')}
+              </select>
+              <div class="project-field-hint">Customer records are managed by the System Administrator.</div>
               ${errorMessage('customer')}
-            </div>
-            <div class="project-editor-field">
-              <label>Customer Program / Reference</label>
-              <input class="project-input" value="${projectHtmlValue(draft.customerRef)}" oninput="projectForm.draft.customerRef=this.value" placeholder="Enter customer reference" aria-label="Customer program reference"/>
             </div>
           </div>
         </section>
@@ -3062,33 +3109,25 @@
               </select>
               ${errorMessage('engineer')}
             </div>
-            <div class="project-editor-field">
-              <label>Plant / Site <em>*</em></label>
-              <select class="project-input ${errorClass('site')}" onchange="projectForm.draft.site=this.value" aria-label="Plant or site">
-                ${['Tangier Plant 2','Kenitra Plant','Casablanca Engineering Center'].map(value => `<option value="${value}" ${draft.site === value ? 'selected' : ''}>${value}</option>`).join('')}
-              </select>
-              ${errorMessage('site')}
-            </div>
-            <div class="project-editor-field">
-              <label>Project Status <em>*</em></label>
-              <select class="project-input ${errorClass('status')}" onchange="projectForm.draft.status=this.value" aria-label="Program status">
-                ${statusOptions.map(value => `<option value="${value}" ${draft.status === value ? 'selected' : ''}>${value}</option>`).join('')}
-              </select>
-              ${errorMessage('status')}
-            </div>
-            <div class="project-editor-field">
-              <label>Start Date <em>*</em></label>
-              <input type="date" class="project-input ${errorClass('startDate')}" value="${projectHtmlValue(draft.startDate)}" onchange="projectForm.draft.startDate=this.value" aria-label="Start date"/>
-              ${errorMessage('startDate')}
-            </div>
-            <div class="project-editor-field">
-              <label>Target Launch Date <em>*</em></label>
-              <input type="date" class="project-input ${errorClass('targetDate')}" value="${projectHtmlValue(draft.targetDate)}" onchange="projectForm.draft.targetDate=this.value" aria-label="Target launch date"/>
-              ${errorMessage('targetDate')}
-            </div>
             <div class="project-editor-field full">
               <label>Project Description</label>
               <textarea class="project-input" oninput="projectForm.draft.description=this.value" placeholder="Enter project description" aria-label="Project description">${projectHtmlValue(draft.description)}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="card project-editor-card">
+          <div class="project-editor-section-title"><h3>Project Creation Meeting</h3></div>
+          <div class="project-editor-grid">
+            <div class="project-editor-field full">
+              <label>Meeting Minutes PDF <em>*</em></label>
+              <input id="projectMeetingMinutes" type="file" accept=".pdf,application/pdf" class="meeting-file-input" onchange="setProjectMeetingMinutes(this)" aria-label="Project creation meeting minutes PDF"/>
+              <div class="meeting-upload ${draft.meetingMinutesFile ? 'has-file' : ''} ${errorClass('meetingMinutesFile')}">
+                <div class="meeting-upload-icon">${icon(draft.meetingMinutesFile ? 'FileText' : 'upload','')}</div>
+                <div class="meeting-upload-copy"><strong>${draft.meetingMinutesFile ? projectHtmlValue(draft.meetingMinutesFile) : 'Attach meeting minutes'}</strong><span>${draft.meetingMinutesFile ? 'PDF attached and ready for the audit trail.' : 'PDF only · required before the project can be created.'}</span></div>
+                <button type="button" class="btn meeting-upload-action" onclick="document.getElementById('projectMeetingMinutes').click()">${draft.meetingMinutesFile ? 'Replace PDF' : 'Choose PDF'}</button>
+              </div>
+              ${errorMessage('meetingMinutesFile')}
             </div>
           </div>
         </section>
@@ -3138,43 +3177,35 @@
 
       const portfolioReadiness = bomReadinessForPns(scopePns);
       const bomBlocked = scopeProjects.filter(p => !projectBomReadiness(p.name).ready).length;
-      const attentionProjects = scopeProjects.filter(p => ['At Risk','Blocked'].includes(p.status)).length;
-      const onTrackProjects = scopeProjects.filter(p => p.status === 'On Track').length;
+      const showOwner = currentRole === 'manager';
 
-      const chips = filterChips(projectFilters, { customer: 'Customer', engineer: 'Engineer', status: 'Status' }, 'clearProjectFilter', 'resetProjectFilters');
+      const chips = filterChips(projectFilters, currentRole === 'manager' ? { customer: 'Customer', engineer: 'Engineer' } : { customer: 'Customer' }, 'clearProjectFilter', 'resetProjectFilters');
 
       const tableBody = pageRows.length ? `<div class="project-list-table-wrap"><table id="projectPortfolioTable" class="project-portfolio-table">
     <thead><tr>
       ${sortTh('Project', 'name', projectSort, 'sortProjects')}
-      ${sortTh('Owner / Plant', 'engineer', projectSort, 'sortProjects')}
-      ${sortTh('Schedule', 'progress', projectSort, 'sortProjects')}
+      ${showOwner ? sortTh('Owner', 'engineer', projectSort, 'sortProjects') : ''}
       ${sortTh('Purchase Orders', 'pos', projectSort, 'sortProjects')}
       ${sortTh('BOM Coverage', 'bomCoverage', projectSort, 'sortProjects')}
-      ${sortTh('Health', 'health', projectSort, 'sortProjects')}
       <th data-export="false">Actions</th>
     </tr></thead>
     <tbody>${pageRows.map(p => {
       const stateClass = p.statusType === 'danger' ? 'danger' : p.statusType === 'warning' ? 'warning' : '';
-      const healthClass = p.health >= 80 ? '' : p.health >= 50 ? 'warning' : 'danger';
-      const healthLabel = p.health >= 80 ? 'Healthy' : p.health >= 50 ? 'Watch' : 'Critical';
       const lifecycleBadges = PO_STATUS_FLOW.filter(status => p.lifecycleCounts[status]).map(status => statusBadge(`${p.lifecycleCounts[status]} ${status}`,productionStatusType(status))).join('');
       return `<tr class="clickable-row" onclick="openProject('${p.id}')">
       <td><div class="project-identity-cell"><div class="project-row-icon ${stateClass}">${icon('projects','')}</div><div class="project-identity-copy"><strong>${p.name}</strong><span class="mono">${p.id} · ${p.customer}</span></div></div></td>
-      <td><div class="project-owner-cell"><strong>${p.engineer}</strong><span>${p.site}</span></div></td>
-      <td><div class="project-schedule-cell"><div class="project-schedule-head">${statusBadge(p.status,p.statusType)}<small>${p.progress}%</small></div><div class="project-progress-track"><div class="project-progress-fill ${stateClass}" style="width:${Math.max(0,Math.min(100,p.progress))}%"></div></div><div class="project-target-date">Target ${p.targetDate || 'Not set'}</div></div></td>
+      ${showOwner ? `<td><div class="project-owner-cell"><strong>${p.engineer}</strong></div></td>` : ''}
       <td><div class="project-po-cell"><div class="project-po-total"><strong>${p.pos}</strong><span>purchase order${p.pos === 1 ? '' : 's'}</span></div><div class="project-po-stages">${lifecycleBadges || statusBadge('No PO','neutral')}</div></div></td>
       <td><div class="project-bom-cell"><div class="project-bom-head"><strong>${p.bomCoverage}%</strong><span>${p.pnCount} PN${p.pnCount === 1 ? '' : 's'}</span></div><div class="project-bom-track"><div class="project-bom-fill ${p.bomCoverage === 100 ? 'ready' : ''}" style="width:${p.bomCoverage}%"></div></div><div class="project-bom-foot">${p.poBomReady}/${p.pos} PO BOMs ready</div></div></td>
-      <td><div class="project-health-cell"><div class="project-health-score"><i class="project-health-dot ${healthClass}"></i><strong>${p.health}%</strong></div><small>${healthLabel}</small></div></td>
       <td>${projectActionIcons(p.id, p.name)}</td>
     </tr>`; }).join('')}</tbody>
   </table></div>` : `<div style="padding:0 20px 20px;">${emptyStateBlock('No projects found', 'Try adjusting or resetting your filters.', 'resetProjectFilters')}</div>`;
 
       return `
   <div class="project-portfolio-summary">
-    <div class="project-summary-metric"><div class="project-summary-icon">${icon('projects','')}</div><div class="project-summary-copy"><span>Projects</span><strong>${scopeProjects.length}</strong><small>${onTrackProjects} on track</small></div></div>
+    <div class="project-summary-metric"><div class="project-summary-icon">${icon('projects','')}</div><div class="project-summary-copy"><span>Projects</span><strong>${scopeProjects.length}</strong><small>In current access scope</small></div></div>
     <div class="project-summary-metric"><div class="project-summary-icon">${icon('po','')}</div><div class="project-summary-copy"><span>Purchase Orders</span><strong>${scopePos.length}</strong><small>${scopePns.length} finished-good part numbers</small></div></div>
     <div class="project-summary-metric ${portfolioReadiness.ready ? 'good' : 'warn'}"><div class="project-summary-icon">${icon('bom','')}</div><div class="project-summary-copy"><span>PN BOM Coverage</span><strong>${portfolioReadiness.percent}%</strong><small>${bomBlocked} project${bomBlocked === 1 ? '' : 's'} requiring BOM</small></div></div>
-    <div class="project-summary-metric ${attentionProjects ? 'danger' : 'good'}"><div class="project-summary-icon">${icon('audit','')}</div><div class="project-summary-copy"><span>Needs Attention</span><strong>${attentionProjects}</strong><small>At-risk or blocked projects</small></div></div>
   </div>
   <div class="card project-list-card">
     <div class="project-list-card-head"><div><h3>All Projects</h3><p>${total} matching · ${scopeProjects.length} in current access scope</p></div><div class="project-list-card-tools">${pageRows.length ? tableExportActions('projectPortfolioTable','Project Portfolio') : ''}${permBtn('newProject', 'New Project', 'plus', "openProjectForm('create')", "primary")}</div></div>
@@ -3190,7 +3221,6 @@
       const scopedProjects = visibleProjects();
       const custOpts = uniqueValues(scopedProjects, 'customer');
       const engOpts = uniqueValues(scopedProjects, 'engineer');
-      const statusOpts = uniqueValues(scopedProjects, 'status');
       return `<div class="table-toolbar">
     <div class="tt-search">
       ${icon('search', '')}
@@ -3200,14 +3230,10 @@
       <option value="">Customer</option>
       ${custOpts.map(c => `<option value="${c}" ${projectFilters.customer === c ? 'selected' : ''}>${c}</option>`).join('')}
     </select>
-    <select class="tt-select" onchange="setProjectFilter('engineer', this.value)">
+    ${currentRole === 'manager' ? `<select class="tt-select" onchange="setProjectFilter('engineer', this.value)">
       <option value="">Engineer</option>
       ${engOpts.map(c => `<option value="${c}" ${projectFilters.engineer === c ? 'selected' : ''}>${c}</option>`).join('')}
-    </select>
-    <select class="tt-select" onchange="setProjectFilter('status', this.value)">
-      <option value="">Status</option>
-      ${statusOpts.map(c => `<option value="${c}" ${projectFilters.status === c ? 'selected' : ''}>${c}</option>`).join('')}
-    </select>
+    </select>` : ''}
     <div class="tt-spacer"></div>
     <div class="tt-icon-btn" title="Refresh" onclick="refreshNotice()">${icon('refresh', '')}</div>
   </div>`;
@@ -3232,8 +3258,6 @@
       return `<div class="icon-actions">
     <div class="icon-btn" title="View Workspace" onclick="stop(event); openPo('${poId}')">${icon('view', '')}</div>
     ${writable ? permIconBtn('editRecord', 'Edit', 'edit', `stop(event); openModal('Edit ${poId}', 'This opens the purchase order edit form — customer, version, delivery date.')`) : ''}
-    <div class="icon-btn" title="Manufacturing Delivery" onclick="stop(event); openPoDeliveryTab('${poId}')">${icon('truck', '')}</div>
-    <div class="icon-btn" title="Delivery History" onclick="stop(event); openPoDeliveryHistory('${poId}')">${icon('history', '')}</div>
     ${writable ? permIconBtn('deleteRecord', 'Delete', 'trash', `stop(event); confirmDeletePo('${poId}')`, 'danger-hover') : ''}
   </div>`;
     }
@@ -3426,13 +3450,54 @@
       </section>`;
     }
 
+    function projectOverviewDashboard(project) {
+      const projectPos = posForProject(project.name);
+      const projectPns = PNS.filter(part => part.project === project.name);
+      const readiness = projectBomReadiness(project.name);
+      const materials = MATERIALS.filter(material => material.projects.includes(project.name));
+      const simulations = SIMULATION_HISTORY.filter(run => run.project === project.name);
+      const manufacturing = MFG_DELIVERIES.filter(delivery => delivery.project === project.name);
+      const customerDeliveries = CUST_DELIVERIES.filter(delivery => delivery.project === project.name);
+      const projectValue = financeTotals(projectPos.flatMap(po => poFinanceRows(po.id))).value;
+      const recentActivity = auditContextEvents({ project:project.name }).slice(0,5);
+      const activeManufacturing = manufacturing.filter(delivery => !['Delivered','Cancelled'].includes(syncMfgDeliveryLifecycle(delivery))).length;
+      const completedCustomerDeliveries = customerDeliveries.filter(delivery => custEffectiveStatus(delivery).label === 'Delivered').length;
+      return `<div class="project-overview-dashboard">
+        <div class="project-overview-kpis">
+          <button class="project-overview-kpi" onclick="showProjectTab('Purchase Orders')"><span>${icon('po','')}</span><div><small>Purchase Orders</small><strong>${projectPos.length}</strong></div></button>
+          <button class="project-overview-kpi" onclick="showProjectTab('Project BOM')"><span>${icon('bom','')}</span><div><small>BOM Coverage</small><strong>${readiness.percent}%</strong></div></button>
+          <button class="project-overview-kpi" onclick="showProjectTab('Stock')"><span>${icon('stock','')}</span><div><small>Materials</small><strong>${materials.length}</strong></div></button>
+          <button class="project-overview-kpi" onclick="showProjectTab('Simulation')"><span>${icon('sim','')}</span><div><small>Simulations</small><strong>${simulations.length}</strong></div></button>
+          <button class="project-overview-kpi" onclick="showProjectTab('Manufacturing Deliveries')"><span>${icon('Package','')}</span><div><small>Active Launches</small><strong>${activeManufacturing}</strong></div></button>
+          <button class="project-overview-kpi" onclick="showProjectTab('Finance')"><span>${icon('money','')}</span><div><small>Project Value</small><strong>${financeMoney(projectValue)}</strong></div></button>
+        </div>
+        <div class="project-overview-grid">
+          <section class="card project-overview-panel">
+            <div class="project-overview-panel-head"><h3>Execution Snapshot</h3></div>
+            <div class="project-overview-facts">
+              <button onclick="showProjectTab('Project BOM')"><span>Finished-good part numbers</span><strong>${projectPns.length}</strong></button>
+              <button onclick="showProjectTab('Project BOM')"><span>Validated BOMs</span><strong>${readiness.uploaded}/${readiness.total}</strong></button>
+              <button onclick="showProjectTab('Manufacturing Deliveries')"><span>Manufacturing launches</span><strong>${manufacturing.length}</strong></button>
+              <button onclick="showProjectTab('Customer Deliveries')"><span>Customer deliveries</span><strong>${completedCustomerDeliveries}/${customerDeliveries.length}</strong></button>
+            </div>
+          </section>
+          <section class="card project-overview-panel">
+            <div class="project-overview-panel-head"><h3>Recent Activity</h3><button class="btn sm" onclick="showProjectTab('History')">View History</button></div>
+            <div class="project-overview-activity">
+              ${recentActivity.length ? recentActivity.map(event => `<div><span class="project-activity-dot"></span><p><strong>${event.action || event.module || 'Project activity'}</strong><small>${event.date || ''}</small></p></div>`).join('') : '<p class="project-overview-empty">No project activity recorded.</p>'}
+            </div>
+          </section>
+        </div>
+      </div>`;
+    }
+
     function pageProjectWorkspace() {
       const project = projectForContext();
       const projectPos = posForProject(project.name);
       const tab = activeTab.project;
       let tabContent = '';
       if (tab === 'Overview') {
-        tabContent = projectOverviewPoList(project,projectPos);
+        tabContent = projectOverviewDashboard(project);
       } else if (tab === 'Purchase Orders') {
         tabContent = `
       <div class="card" style="margin-bottom:0;">
@@ -3485,16 +3550,12 @@
       <div class="workspace-header">
         <div class="ws-header-grid" style="width:100%;">
           <div style="display:flex; gap:18px; align-items:flex-start;">
-            ${healthRing(project.health)}
             <div>
               <span class="ws-id">${project.id}</span>
               <div class="ws-title">${project.name}</div>
               <div class="ws-meta">
                 <div class="ws-meta-item"><span class="l">Customer</span><span class="v">${project.customer}</span></div>
-                <div class="ws-meta-item"><span class="l">Engineer</span><span class="v">${project.engineer}</span></div>
-                <div class="ws-meta-item"><span class="l">Plant / Site</span><span class="v">${project.site || 'Not defined'}</span></div>
-                <div class="ws-meta-item"><span class="l">Target SOP</span><span class="v mono">${project.targetDate || 'Not defined'}</span></div>
-                <div class="ws-meta-item"><span class="l">Project Status</span>${statusBadge(project.status, project.statusType)}</div>
+                ${currentRole === 'manager' ? `<div class="ws-meta-item"><span class="l">Owner</span><span class="v">${project.engineer}</span></div>` : ''}
               </div>
             </div>
           </div>
@@ -3545,15 +3606,44 @@
       const rows = projectBomDisplayRows(project.name);
       const version = record?.version || PROJECT_BOM_META.version;
       const file = record?.file || `${project.name.replace(/\s+/g,'_')}_Project_BOM_${version}.xlsx`;
-      const updatedAt = record?.importedAt || PROJECT_BOM_META.lastUpload;
-      const updatedBy = record?.importedBy || PROJECT_BOM_META.uploadedBy;
       const fgpnCount = new Set(rows.map(row => row.fgpn)).size;
       const materialCount = new Set(rows.map(row => row.material)).size;
+      const fgpnOptions = [...new Set(rows.map(row => row.fgpn))].sort();
+      const typeOptions = [...new Set(rows.map(row => row.materialType))].sort();
+      const query = projectBomFilters.search.trim().toLowerCase();
+      const filteredRows = rows.filter(row => {
+        const poId = projectPnsForBomRow(project.name,row.fgpn);
+        if (projectBomFilters.fgpn && row.fgpn !== projectBomFilters.fgpn) return false;
+        if (projectBomFilters.type && row.materialType !== projectBomFilters.type) return false;
+        if (query && ![poId,row.fgpn,row.material,row.description,row.materialType,row.supplier,row.revision].some(value => String(value || '').toLowerCase().includes(query))) return false;
+        return true;
+      });
       return `<div class="card project-bom-clean">
-        <div class="project-bom-clean-head"><div class="project-bom-clean-title"><div class="project-bom-file-icon">${icon('FileText','')}</div><div><h3>Project BOM</h3><p>${file} · updated ${updatedAt} by ${updatedBy}</p></div></div><div class="project-bom-clean-actions">${statusBadge('Validated','success')}${tableExportActions('projectBomMaterialsTable',`${project.name} Project BOM`)}<button class="btn" onclick="navigate('stock-history')">History</button>${canWriteProject(project) ? permBtn('uploadBom','Upload New Version','upload',`openProjectBomUploader('${project.name}')`,'primary') : ''}</div></div>
+        <div class="project-bom-clean-head"><div class="project-bom-clean-title"><div class="project-bom-file-icon">${icon('FileText','')}</div><div><h3>Project BOM</h3><p>${file}</p></div></div><div class="project-bom-clean-actions">${tableExportActions('projectBomMaterialsTable',`${project.name} Project BOM`)}</div></div>
         <div class="project-bom-meta"><div class="project-bom-meta-item"><span>Version</span><strong>${version}</strong></div><div class="project-bom-meta-item"><span>Finished Good PNs</span><strong>${fgpnCount}</strong></div><div class="project-bom-meta-item"><span>Unique Materials</span><strong>${materialCount}</strong></div><div class="project-bom-meta-item"><span>Material Rows</span><strong>${rows.length}</strong></div></div>
-        <div class="project-bom-table-wrap"><h4>Project BOM Materials</h4><div class="table-scroll"><table id="projectBomMaterialsTable" class="project-bom-table"><thead><tr><th>Finished Good PN</th><th>Material PN</th><th>Description</th><th>Type</th><th>Usage Qty</th><th>Unit</th><th>Supplier</th><th>Revision</th></tr></thead><tbody>${rows.map(row => `<tr><td class="mono">${row.fgpn}</td><td class="mono">${row.material}</td><td>${row.description}</td><td>${row.materialType}</td><td class="mono">${row.usageQty}</td><td>${row.unit}</td><td>${row.supplier}</td><td class="mono">${row.revision}</td></tr>`).join('')}</tbody></table></div></div>
+        <div class="project-bom-table-wrap">
+          <div class="project-bom-table-head"><h4>Project BOM Materials</h4><span>${filteredRows.length} of ${rows.length} rows</span></div>
+          <div class="project-bom-toolbar">
+            <div class="project-bom-search">${icon('search','')}<input id="projectBomSearch" value="${projectHtmlValue(projectBomFilters.search)}" oninput="setProjectBomFilter('search',this.value)" placeholder="Search material, description, supplier…"></div>
+            <select onchange="setProjectBomFilter('fgpn',this.value)"><option value="">All finished-good PNs</option>${fgpnOptions.map(value => `<option value="${value}" ${projectBomFilters.fgpn === value ? 'selected' : ''}>${value}</option>`).join('')}</select>
+            <select onchange="setProjectBomFilter('type',this.value)"><option value="">All material types</option>${typeOptions.map(value => `<option value="${value}" ${projectBomFilters.type === value ? 'selected' : ''}>${value}</option>`).join('')}</select>
+            ${(projectBomFilters.search || projectBomFilters.fgpn || projectBomFilters.type) ? `<button class="btn sm" onclick="resetProjectBomFilters()">Clear</button>` : ''}
+          </div>
+          <div class="table-scroll"><table id="projectBomMaterialsTable" class="project-bom-table"><thead><tr><th>PO</th><th>Finished Good PN</th><th>Material PN</th><th>Description</th><th>Type</th><th>Usage Qty</th><th>Unit</th><th>Supplier</th><th>Revision</th></tr></thead><tbody>${filteredRows.length ? filteredRows.map(row => `<tr><td class="mono">${projectPnsForBomRow(project.name,row.fgpn)}</td><td class="mono">${row.fgpn}</td><td class="mono">${row.material}</td><td>${row.description}</td><td>${row.materialType}</td><td class="mono">${row.usageQty}</td><td>${row.unit}</td><td>${row.supplier}</td><td class="mono">${row.revision}</td></tr>`).join('') : `<tr><td colspan="9"><div class="project-bom-no-results">No BOM materials match these filters.</div></td></tr>`}</tbody></table></div>
+        </div>
       </div>`;
+    }
+    function projectPnsForBomRow(projectName,fgpn) {
+      return PNS.find(part => part.project === projectName && part.pn === fgpn)?.po || '—';
+    }
+    function setProjectBomFilter(key,value) {
+      projectBomFilters[key] = value;
+      renderPage();
+      if (key === 'search') restoreFocus('#projectBomSearch');
+    }
+    function resetProjectBomFilters() {
+      projectBomFilters = { search:'', fgpn:'', type:'' };
+      renderPage();
     }
 
     /* ============ PO PRODUCTION CONTROL (M04 + Production & Packing Coordinator) ============ */
@@ -8012,10 +8102,11 @@
       return `<div class="admin-shell"><div class="admin-head"><h2>Project Assignments</h2></div><div class="admin-assignment-layout"><div class="card admin-card admin-assignment-form"><div class="admin-card-head"><h3>Assign Project Access</h3></div><div class="admin-field"><label>Project</label><select onchange="adminSetAssignmentDraft('project',this.value)">${PROJECTS.map(project => `<option value="${project.name}" ${adminAssignmentDraft.project === project.name ? 'selected' : ''}>${project.name}</option>`).join('')}</select></div><div class="admin-field" style="margin-top:16px;"><label>Responsible User</label><select onchange="adminSetAssignmentDraft('userId',this.value)">${eligible.map(user => `<option value="${user.id}" ${adminAssignmentDraft.userId === user.id ? 'selected' : ''}>${user.fullName} · ${user.role}</option>`).join('')}</select></div><button class="btn primary" style="width:100%;justify-content:center;margin-top:18px;" onclick="adminAssignProject()">${icon('plus','')} Assign Access</button></div><div class="admin-project-access">${PROJECTS.map(project => { const assignments=ADMIN_ASSIGNMENTS.filter(item => item.project === project.name && ADMIN_USERS.some(user => user.name === item.user && adminIsLaunchRole(user.role))); return `<div class="admin-project-access-card"><div class="admin-project-access-head"><strong>${project.name}</strong>${statusBadge(`${assignments.length} assigned`,assignments.length ? 'info' : 'warning')}</div><div class="admin-assignee-list">${assignments.length ? assignments.map(assignment => { const user=ADMIN_USERS.find(item => item.name === assignment.user); return `<div class="admin-assignee"><div><strong>${user?.fullName || assignment.user}</strong><span>${user?.role || assignment.role} · @${user?.username || 'unknown'}</span></div><button class="btn sm" onclick="adminUnassignProject('${assignment.user}','${project.name}')">Unassign</button></div>`; }).join('') : '<div class="admin-sub">No assigned user</div>'}</div></div>`; }).join('')}</div></div></div>`;
     }
 
-    function adminSelectReferenceModule(key) { adminReferenceModule=key; adminReferenceForm={ open:false,mode:'create',editingId:'',draft:{label:'',project:'',status:'Active'} }; renderPage(); }
-    function adminOpenReferenceForm(mode,id='') { const list=ADMIN_REFERENCE_LISTS[adminReferenceModule],entry=list.entries.find(item => item.id === id); adminReferenceForm={ open:true,mode,editingId:entry?.id || '',draft:entry ? {label:entry.label,project:entry.project || '',status:entry.status} : {label:'',project:adminReferenceModule === 'fgpn' ? PROJECTS[0].name : '',status:'Active'} }; renderPage(); }
+    function adminSelectReferenceModule(key) { if (currentRole !== 'admin') return; adminReferenceModule=key; adminReferenceForm={ open:false,mode:'create',editingId:'',draft:{label:'',project:'',status:'Active'} }; renderPage(); }
+    function adminOpenReferenceForm(mode,id='') { if (currentRole !== 'admin') return openModal('Administrator access required','Only the System Administrator can manage reference lists.'); const list=ADMIN_REFERENCE_LISTS[adminReferenceModule],entry=list.entries.find(item => item.id === id); adminReferenceForm={ open:true,mode,editingId:entry?.id || '',draft:entry ? {label:entry.label,project:entry.project || '',status:entry.status} : {label:'',project:adminReferenceModule === 'fgpn' ? PROJECTS[0].name : '',status:'Active'} }; renderPage(); }
     function adminSetReferenceDraft(key,value) { adminReferenceForm.draft[key]=value; }
     function adminSaveReferenceEntry() {
+      if (currentRole !== 'admin') return openModal('Administrator access required','Only the System Administrator can manage reference lists.');
       const list=ADMIN_REFERENCE_LISTS[adminReferenceModule],draft=adminReferenceForm.draft,label=String(draft.label || '').trim();
       if (!label) return openModal('Name required',`Enter the ${list.fields.toLowerCase()}.`);
       if (adminReferenceModule === 'fgpn' && !draft.project) return openModal('Project required','Select the project for this Finished Goods Part Number.');
@@ -8024,8 +8115,8 @@
       else { const prefix=({customers:'CUS',contacts:'CON',fgpn:'FG',receivers:'RCV',methods:'MET',materialTypes:'MT'})[adminReferenceModule]; const next=Math.max(0,...list.entries.map(entry => Number(String(entry.id).match(/(\d+)$/)?.[1]) || 0))+1; list.entries.push({id:`${prefix}-${String(next).padStart(3,'0')}`,label,project:draft.project || '',status:draft.status,linkedRecords:0}); adminAudit('Reference entry created',`${label} added to ${list.label}.`); }
       adminReferenceForm={ open:false,mode:'create',editingId:'',draft:{label:'',project:'',status:'Active'} }; renderPage();
     }
-    function adminToggleReferenceEntry(id) { const list=ADMIN_REFERENCE_LISTS[adminReferenceModule],entry=list.entries.find(item => item.id === id); if (!entry) return; entry.status=entry.status === 'Active' ? 'Inactive' : 'Active'; adminAudit(`Reference entry ${entry.status === 'Active' ? 'reactivated' : 'deactivated'}`,`${entry.label} in ${list.label}.`); renderPage(); }
-    function adminDeleteReferenceEntry(id) { const list=ADMIN_REFERENCE_LISTS[adminReferenceModule],index=list.entries.findIndex(item => item.id === id); if (index < 0) return; const entry=list.entries[index]; if (entry.linkedRecords > 0) return openModal('Deletion prevented',`${entry.label} is linked to ${entry.linkedRecords} existing record${entry.linkedRecords === 1 ? '' : 's'}. Deactivate it instead to preserve historical records.`); list.entries.splice(index,1); adminAudit('Reference entry deleted',`${entry.label} removed from ${list.label}; it had no linked records.`); renderPage(); }
+    function adminToggleReferenceEntry(id) { if (currentRole !== 'admin') return openModal('Administrator access required','Only the System Administrator can manage reference lists.'); const list=ADMIN_REFERENCE_LISTS[adminReferenceModule],entry=list.entries.find(item => item.id === id); if (!entry) return; entry.status=entry.status === 'Active' ? 'Inactive' : 'Active'; adminAudit(`Reference entry ${entry.status === 'Active' ? 'reactivated' : 'deactivated'}`,`${entry.label} in ${list.label}.`); renderPage(); }
+    function adminDeleteReferenceEntry(id) { if (currentRole !== 'admin') return openModal('Administrator access required','Only the System Administrator can manage reference lists.'); const list=ADMIN_REFERENCE_LISTS[adminReferenceModule],index=list.entries.findIndex(item => item.id === id); if (index < 0) return; const entry=list.entries[index]; if (entry.linkedRecords > 0) return openModal('Deletion prevented',`${entry.label} is linked to ${entry.linkedRecords} existing record${entry.linkedRecords === 1 ? '' : 's'}. Deactivate it instead to preserve historical records.`); list.entries.splice(index,1); adminAudit('Reference entry deleted',`${entry.label} removed from ${list.label}; it had no linked records.`); renderPage(); }
     function pageAdminReferenceData() {
       const list=ADMIN_REFERENCE_LISTS[adminReferenceModule] || ADMIN_REFERENCE_LISTS.customers;
       return `<div class="admin-shell"><div class="admin-head"><h2>Reference Lists</h2><div class="admin-head-actions"><button class="btn primary" onclick="adminOpenReferenceForm('create')">${icon('plus','')} Add Entry</button></div></div><div class="admin-ref-layout"><div class="card admin-ref-nav">${Object.entries(ADMIN_REFERENCE_LISTS).map(([key,value]) => `<button class="admin-ref-link ${adminReferenceModule === key ? 'active' : ''}" onclick="adminSelectReferenceModule('${key}')"><span>${value.label}</span><span>${value.entries.length}</span></button>`).join('')}</div><div><div class="card admin-card" style="padding:0;overflow:hidden;">${adminReferenceForm.open ? `<div class="admin-form-head"><h3>${adminReferenceForm.mode === 'create' ? 'Add' : 'Edit'} ${list.label} Entry</h3><button class="btn sm" onclick="adminReferenceForm.open=false;renderPage()">Close</button></div><div class="admin-form-body"><div class="admin-form-grid"><div class="admin-field"><label>${list.fields}</label><input value="${poEsc(adminReferenceForm.draft.label)}" oninput="adminSetReferenceDraft('label',this.value)"></div>${adminReferenceModule === 'fgpn' ? `<div class="admin-field"><label>Project</label><select onchange="adminSetReferenceDraft('project',this.value)">${PROJECTS.map(project => `<option value="${project.name}" ${adminReferenceForm.draft.project === project.name ? 'selected' : ''}>${project.name}</option>`).join('')}</select></div>` : ''}<div class="admin-field"><label>Status</label><select onchange="adminSetReferenceDraft('status',this.value)"><option ${adminReferenceForm.draft.status === 'Active' ? 'selected' : ''}>Active</option><option ${adminReferenceForm.draft.status === 'Inactive' ? 'selected' : ''}>Inactive</option></select></div></div><div class="admin-form-actions"><button class="btn" onclick="adminReferenceForm.open=false;renderPage()">Cancel</button><button class="btn primary" onclick="adminSaveReferenceEntry()">Save Entry</button></div></div>` : `<div class="admin-card-head" style="padding:20px 22px;margin:0;"><div><h3>${list.label}</h3><span>${list.entries.filter(entry => entry.status === 'Active').length} active · ${list.entries.filter(entry => entry.status === 'Inactive').length} inactive</span></div><button class="btn sm primary" onclick="adminOpenReferenceForm('create')">${icon('plus','')} Add</button></div>`}<div class="table-scroll"><table><thead><tr><th>ID</th><th>Name</th>${adminReferenceModule === 'fgpn' ? '<th>Project</th>' : ''}<th>Status</th><th>Linked Records</th><th style="text-align:right;">Actions</th></tr></thead><tbody>${list.entries.map(entry => `<tr><td class="mono">${entry.id}</td><td><strong style="color:#000;font-weight:600;">${entry.label}</strong></td>${adminReferenceModule === 'fgpn' ? `<td>${entry.project}</td>` : ''}<td>${statusBadge(entry.status,entry.status === 'Active' ? 'success' : 'neutral')}</td><td>${entry.linkedRecords}</td><td><div class="admin-row-actions"><button class="btn sm" onclick="adminOpenReferenceForm('edit','${entry.id}')">Edit</button><button class="btn sm" onclick="adminToggleReferenceEntry('${entry.id}')">${entry.status === 'Active' ? 'Deactivate' : 'Reactivate'}</button><button class="btn sm" onclick="adminDeleteReferenceEntry('${entry.id}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div></div></div></div></div>`;
@@ -8088,6 +8179,33 @@
     }
 
     /* ================= INIT ================= */
+    const WORKSPACE_SESSION_KEY = 'launchOpsWorkspaceSession';
+    let workspaceSessionSaveTimer = 0;
+    function saveWorkspaceSession() {
+      window.clearTimeout(workspaceSessionSaveTimer);
+      sessionStorage.setItem(WORKSPACE_SESSION_KEY, JSON.stringify({
+        currentRole,
+        currentPage,
+        projectForm,
+        scrollY: window.scrollY,
+      }));
+    }
+    function queueWorkspaceSessionSave() {
+      window.clearTimeout(workspaceSessionSaveTimer);
+      workspaceSessionSaveTimer = window.setTimeout(saveWorkspaceSession, 120);
+    }
+    function restoreWorkspaceSession() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(WORKSPACE_SESSION_KEY) || 'null');
+        if (!saved) return;
+        if (ROLE_LABEL[saved.currentRole]) currentRole = saved.currentRole;
+        if (saved.currentPage) currentPage = saved.currentPage;
+        if (saved.projectForm?.draft) projectForm = saved.projectForm;
+        requestAnimationFrame(() => window.scrollTo({ top:Number(saved.scrollY || 0), behavior:'auto' }));
+      } catch (error) {
+        sessionStorage.removeItem(WORKSPACE_SESSION_KEY);
+      }
+    }
     function renderAll() {
       renderNav();
       renderBreadcrumb();
@@ -8095,6 +8213,11 @@
       renderTopbarWidgets();
       const avatar = document.getElementById('topbarAvatar');
       if (avatar) avatar.textContent = ROLE_PERSONA[currentRole].initials;
+      queueWorkspaceSessionSave();
     }
+    window.addEventListener('beforeunload', saveWorkspaceSession);
+    document.addEventListener('input', queueWorkspaceSessionSave);
+    document.addEventListener('change', queueWorkspaceSessionSave);
+    restoreWorkspaceSession();
     initSidebarState();
     renderAll();
