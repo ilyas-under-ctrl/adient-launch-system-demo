@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -19,7 +20,7 @@ from app.services.operations.constraints import (
 )
 
 router = APIRouter(prefix="/api", tags=["prototype operations"])
-UPLOAD_DIR = Path("backend/uploads")
+UPLOAD_DIR = Path(os.getenv("LAUNCHOPS_UPLOAD_DIR", "backend/uploads"))
 DEMO_ROLE_USERS = {"engineer": "engineer", "manager": "manager"}
 
 
