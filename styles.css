@@ -6067,41 +6067,41 @@
 
 /* Sign-in and demo workspace selection */
 .login-gate {
-  place-items: safe center;
-  background:
-    linear-gradient(90deg, #173d58 0, #173d58 31%, #edf3f5 31%, #edf3f5 100%);
+  align-items: center;
+  justify-items: center;
+  background: #edf3f5;
 }
 .login-gate-panel {
-  width: min(1040px, 100%);
+  width: min(920px, calc(100vw - 48px));
   overflow: hidden;
   border: 0;
   border-radius: 8px;
   padding: 0;
-  box-shadow: 0 24px 70px rgba(15, 37, 51, .18), 0 2px 8px rgba(15, 37, 51, .08);
+  box-shadow: 0 18px 48px rgba(15, 37, 51, .13), 0 2px 7px rgba(15, 37, 51, .06);
 }
 .login-gate-intro {
   position: relative;
-  min-height: 176px;
-  padding: 28px 32px 26px;
-  background: #173d58;
+  min-height: 138px;
+  padding: 21px 28px 20px;
+  background: #1b425a;
   color: #fff;
 }
 .login-gate-intro::after {
   position: absolute;
-  right: 32px;
+  right: 28px;
   bottom: 0;
-  width: 92px;
-  height: 4px;
+  width: 56px;
+  height: 3px;
   background: #bed600;
   content: "";
 }
-.login-gate-brand { margin-bottom: 22px; }
+.login-gate-brand { margin-bottom: 13px; }
 .login-gate-brand img {
-  width: 62px;
-  height: 40px;
+  width: 52px;
+  height: 32px;
   filter: brightness(0) invert(1);
 }
-.login-gate-brand strong { color: #fff; font-size: 17px; }
+.login-gate-brand strong { color: #fff; font-size: 15px; }
 .login-gate-brand span { color: #c9d7df; letter-spacing: .08em; }
 .login-gate-eyebrow,
 .login-section-heading > span {
@@ -6115,35 +6115,35 @@
 }
 .login-gate-eyebrow { color: #bed600; }
 .login-gate-panel h1 {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: #fff;
-  font-size: 30px;
+  font-size: 25px;
   line-height: 1.2;
 }
 .login-gate-panel > p,
 .login-gate-intro > p {
-  max-width: 650px;
+  max-width: 620px;
   margin: 0;
   color: #d5e0e6;
-  font-size: 13px;
+  font-size: 11.5px;
 }
 .login-gate-content {
   display: grid;
-  grid-template-columns: minmax(260px, .72fr) minmax(500px, 1.45fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 0;
   background: #fff;
 }
 .login-credentials,
-.login-demo-access { padding: 28px 32px 32px; }
+.login-demo-access { padding: 23px 26px 26px; }
 .login-credentials {
   background: #f7fafb;
   box-shadow: inset -1px 0 #e3eaee;
 }
-.login-section-heading { margin-bottom: 17px; }
+.login-section-heading { margin-bottom: 14px; }
 .login-section-heading h2 {
   margin: 0;
   color: #14252f;
-  font-size: 17px;
+  font-size: 15px;
   letter-spacing: 0;
 }
 .login-gate-panel form { gap: 13px; }
@@ -6152,7 +6152,7 @@
   font-size: 11px;
 }
 .login-gate-panel form input {
-  min-height: 42px;
+  min-height: 39px;
   border: 1px solid #cbd8de;
   border-radius: 6px;
   background: #fff;
@@ -6165,7 +6165,7 @@
   outline: 3px solid rgba(0, 124, 158, .12);
 }
 .login-gate-panel form .btn {
-  min-height: 42px;
+  min-height: 39px;
   margin-top: 2px;
 }
 .login-auth-note {
@@ -6182,16 +6182,16 @@
 }
 .login-gate-roles {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
+  gap: 8px;
 }
 .login-gate-roles button {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr) 20px;
   align-items: center;
-  min-height: 72px;
+  min-height: 64px;
   border-color: #dfe7eb;
   border-radius: 7px;
-  padding: 10px 11px;
+  padding: 9px 10px;
   box-shadow: 0 1px 2px rgba(19, 45, 59, .03);
   transition-property: border-color, background-color, box-shadow, transform;
   transition-duration: 140ms;
@@ -6205,8 +6205,8 @@
 .login-gate-roles button:active { transform: scale(.96); }
 .login-role-mark {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border-radius: 6px;
   background: #e8f4f6;
@@ -6216,20 +6216,20 @@
 }
 .login-role-copy { min-width: 0; }
 .login-gate-roles .login-role-copy strong {
-  overflow: hidden;
   color: #14252f;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: normal;
 }
 .login-gate-roles .login-role-copy > span {
+  display: -webkit-box;
   overflow: hidden;
   margin-top: 2px;
   color: #667a84;
-  font-size: 10.5px;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 9px;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .login-role-arrow {
   color: #008582;
