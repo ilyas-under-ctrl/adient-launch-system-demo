@@ -1897,7 +1897,7 @@
 
       return `<div class="engineer-dashboard">
         <div class="engineer-dashboard-head">
-          <div><h1>Launch Engineer Dashboard</h1><p>${projects.length} assigned projects · ${activePos.length} active purchase orders</p></div>
+          <div><h1>Overview</h1><p>${projects.length} assigned projects · ${activePos.length} active purchase orders</p></div>
           <div class="engineer-dashboard-head-actions"><button class="btn" onclick="navigate('project-list')">${icon('projects','')} Projects</button><button class="btn primary" onclick="navigate('po-list')">${icon('po','')} Purchase Orders</button></div>
         </div>
 
