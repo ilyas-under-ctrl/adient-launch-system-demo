@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "api": "python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload",
     "build": "vite build && esbuild public/app.js --minify --outfile=dist/app.js",
     "preview": "vite preview --host 127.0.0.1"
   },

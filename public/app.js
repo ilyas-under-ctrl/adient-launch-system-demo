@@ -257,6 +257,93 @@
     };
 
     let currentRole = 'engineer';
+    const launchApi = { connected:false, loading:false, error:'', snapshot:null };
+    function launchApiRole() {
+      return ['engineer','wh_lead','admin'].includes(currentRole) ? currentRole : 'engineer';
+    }
+    async function launchApiRequest(path, options = {}) {
+      const localApi = ['127.0.0.1','localhost'].includes(window.location.hostname) ? 'http://127.0.0.1:8000/api' : '/api';
+      const headers = new Headers(options.headers || {});
+      headers.set('X-Demo-Role', launchApiRole());
+      if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type','application/json');
+      const response = await fetch(`${localApi}${path}`, { ...options, headers });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const detail = typeof payload.detail === 'string' ? payload.detail : payload.detail?.message;
+        throw new Error(detail || `Backend request failed (${response.status})`);
+      }
+      return response.status === 204 ? null : response.json();
+    }
+    function launchApiApplyLaunch(record) {
+      const code = record.code;
+      let delivery = MFG_DELIVERIES.find(item => item.code === code || item.backendId === record.id);
+      const lines = (record.fgpn_quantities || []).map(line => ({
+        fgpn:line.fgpn,
+        qty:Number(line.qty || 0),
+        ordered:Number(line.ordered || line.qty || 0),
+        status:line.status || 'Unplanned',
+        producedQty:Number(line.producedQty || 0),
+        packagedQty:Number(line.packagedQty || 0),
+        customerDeliveredQty:Number(line.customerDeliveredQty || 0),
+      }));
+      const mapped = {
+        backendId:record.id,
+        code,
+        project:record.project,
+        po:record.po,
+        receiver:record.receiver || '',
+        status:record.status,
+        statusType:mfgStatusType(record.status),
+        generatedAt:String(record.created_at || '').slice(0,16).replace('T',' '),
+        expiresAt:String(record.expires_at || '').slice(0,16).replace('T',' '),
+        used:!!record.used_at,
+        codeUsedAt:String(record.used_at || '').slice(0,16).replace('T',' '),
+        fgpn:lines[0]?.fgpn || '',
+        fgpns:lines.map(line => line.fgpn),
+        fgpnQuantities:lines,
+        materials:(record.materials || []).map(line => ({ ...line, qty:Number(line.qty || line.required || 0) })),
+        documentFileName:record.warehouse_document_name || '',
+        documentGeneratedAt:record.warehouse_document_name ? String(record.created_at || '').slice(0,16).replace('T',' ') : '',
+        signedFileName:record.signed_document_name || '',
+        docUploaded:!!record.signed_document_name,
+        createdBy:record.created_by || 'Launch Engineer',
+        lifecycleStatus:record.status === 'Delivered' ? 'In Progress' : 'Unplanned',
+      };
+      if (delivery) Object.assign(delivery,mapped);
+      else {
+        delivery = mapped;
+        MFG_DELIVERIES.unshift(delivery);
+      }
+      return delivery;
+    }
+    function launchApiHydrate(payload) {
+      (payload.purchase_orders || []).forEach(record => {
+        const existing = POS.find(item => item.id === record.id);
+        if (existing) Object.assign(existing,{ stockCode:record.stock_code, backendStatus:record.status, delivery:record.delivery });
+      });
+      (payload.materials || []).forEach(record => {
+        const material = MATERIALS.find(item => item.code === record.code);
+        if (material) Object.assign(material,{ warehouse:Number(record.warehouse),wip:Number(record.wip),transit:Number(record.transit),supplier:record.supplier,type:record.type });
+      });
+      (payload.launches || []).forEach(launchApiApplyLaunch);
+    }
+    async function launchApiInit() {
+      if (launchApi.loading) return;
+      launchApi.loading = true;
+      try {
+        const payload = await launchApiRequest('/bootstrap');
+        launchApiHydrate(payload);
+        launchApi.connected = true;
+        launchApi.error = '';
+        if (currentRole === 'admin') launchApi.snapshot = await launchApiRequest('/admin-snapshot');
+      } catch (error) {
+        launchApi.connected = false;
+        launchApi.error = error.message;
+      } finally {
+        launchApi.loading = false;
+        renderAll();
+      }
+    }
     let currentPage = 'dashboard';
     let navigationHistory = [];
     const NAVIGATION_HISTORY_LIMIT = 40;
@@ -305,11 +392,12 @@
     /* ================= SIMULATION WORKSPACE STATE ================= */
     /* M05-FR-02 / OP-09 baseline: default coefficient 2.0; overrides are versioned and approved. */
     const SAFETY_COEFFICIENT = 2;
-    let simScope = 'project';
+    let simScope = 'single';
     let simProject = 'BMW X5';
-    let simSelectedPOs = new Set(['PO-2025-012', 'PO-2025-011']);
+    let simSelectedPOs = new Set(['PO-00045', 'PO-2025-013']);
     let simSinglePO = 'PO-00045';
     let simSources = { warehouse: true, wip: true, transit: false };
+    let simStockBasis = 'real';
     /* M05-FR-02: Safety coefficient defaults to 2.0 under the governed OP-09 baseline.
        Kept as a variable (not a hardcoded literal in the formula) only so Admin-level override is
        possible later without a code change — the UI does not expose it as an editable slider. */
@@ -327,6 +415,8 @@
     let simMeetingDate = '2026-07-15';
     let simMeetingParticipants = 'A. Haddad, M. Idrissi';
     let simMeetingMinutes = '';
+    let simMeetingFileName = '';
+    let simMeetingFile = null;
     let simIncomingMaterialDraft = { material: 'MAT-4471', qty: 0, arrival: '2026-07-20', supplier: '', status: 'Expected' };
     let simResult = null;
     let simPoVersion = 'v3';
@@ -388,6 +478,7 @@
       generatedAt: '',
       expiresAt: '',
       approval: null,
+      feasibility: null,
     };
     let mfgSimulationContext = { active:false,returnStep:4 };
     let mfgLaunchSimulationResult = null;
@@ -664,11 +755,11 @@
     const SIM_META = { date: '2026-07-10 14:22', executedBy: 'A. Haddad', safetyCoefficient: '2.0 (governed default)', cutmanVersion: 'CM-2026-07-09' };
 
     const MATERIALS = [
-      { code: 'MAT-4471', desc: 'Wiring harness clip', type: 'Connector', supplier: 'Amphenol', required: 1200, warehouse: 820, cutman: 180, wip: 200, missing: 180, threshold: 500, transit: 120, projects: ['BMW X5', 'Peugeot 208'], pns: ['PN100', 'PN102'] },
-      { code: 'MAT-3390', desc: 'Cable sleeve 8mm', type: 'Tube', supplier: 'Sumitomo', required: 640, warehouse: 640, cutman: 0, wip: 0, missing: 0, threshold: 300, transit: 0, projects: ['BMW X5'], pns: ['PN100'] },
-      { code: 'MAT-5512', desc: 'Connector housing 4-pin', type: 'Connector', supplier: 'TE Connectivity', required: 980, warehouse: 410, cutman: 0, wip: 300, missing: 270, threshold: 600, transit: 200, projects: ['BMW X5', 'Renault Clio V'], pns: ['PN101', 'PN102'] },
-      { code: 'MAT-1207', desc: 'Terminal pin, gold', type: 'Terminal', supplier: 'Yazaki', required: 2400, warehouse: 2400, cutman: 0, wip: 0, missing: 0, threshold: 1000, transit: 0, projects: ['Dacia Sandero'], pns: ['PN100'] },
-      { code: 'MAT-2208', desc: 'Primary wire 0.5mm red', type: 'Wire', supplier: 'Leoni', required: 3000, warehouse: 1900, cutman: 400, wip: 0, missing: 700, threshold: 1500, transit: 300, projects: ['BMW X5'], pns: ['PN100'] },
+      { code: 'MAT-4471', desc: 'Wiring harness clip', type: 'Connector', supplier: 'Amphenol', required: 1200, warehouse: 5200, cutman: 180, wip: 800, missing: 0, threshold: 500, transit: 120, projects: ['BMW X5', 'Peugeot 208'], pns: ['PN100', 'PN102'] },
+      { code: 'MAT-3390', desc: 'Cable sleeve 8mm', type: 'Tube', supplier: 'Sumitomo', required: 640, warehouse: 4800, cutman: 0, wip: 600, missing: 0, threshold: 300, transit: 0, projects: ['BMW X5'], pns: ['PN100'] },
+      { code: 'MAT-5512', desc: 'Connector housing 4-pin', type: 'Connector', supplier: 'TE Connectivity', required: 980, warehouse: 4600, cutman: 0, wip: 700, missing: 0, threshold: 600, transit: 200, projects: ['BMW X5', 'Renault Clio V'], pns: ['PN101', 'PN102'] },
+      { code: 'MAT-1207', desc: 'Terminal pin, gold', type: 'Terminal', supplier: 'Yazaki', required: 2400, warehouse: 6200, cutman: 0, wip: 500, missing: 0, threshold: 1000, transit: 0, projects: ['Dacia Sandero'], pns: ['PN100'] },
+      { code: 'MAT-2208', desc: 'Primary wire 0.5mm red', type: 'Wire', supplier: 'Leoni', required: 3000, warehouse: 7800, cutman: 400, wip: 900, missing: 0, threshold: 1500, transit: 300, projects: ['BMW X5'], pns: ['PN100'] },
       { code: 'MAT-6630', desc: 'PVC tape black 19mm', type: 'Tape', supplier: '3M', required: 180, warehouse: 210, cutman: 0, wip: 0, missing: 0, threshold: 100, transit: 0, projects: ['Renault Clio V'], pns: ['PN101'] },
     ];
     MATERIALS.forEach(m => { THRESHOLD_DEFAULTS[m.code] = m.threshold; });
@@ -687,6 +778,8 @@
        the safety coefficient, so a PO already partly launched doesn't re-demand full material. */
     const PO_LAUNCH_PROGRESS = {
       'PO-00045': { qty: 1200, pn: 'PN100', alreadyLaunched: 300, enteredToManufacturing: 150 },
+      'PO-00046': { qty: 640, pn: 'PN101', alreadyLaunched: 220, enteredToManufacturing: 0 },
+      'PO-00047': { qty: 980, pn: 'PN102', alreadyLaunched: 0, enteredToManufacturing: 0 },
       'PO-2025-013': { qty: 640, pn: 'PN101', alreadyLaunched: 0, enteredToManufacturing: 0 },
       'PO-2025-012': { qty: 980, pn: 'PN102', alreadyLaunched: 0, enteredToManufacturing: 100 },
       'PO-2025-011': { qty: 2400, pn: 'PN100', alreadyLaunched: 1000, enteredToManufacturing: 400 },
@@ -1062,7 +1155,7 @@
       navigationBackFallback = 'dashboard';
     });
     resetBrowserNavigationState();
-    function setRole(role) { currentRole = role; expandedGroups = {}; currentPage = 'dashboard'; navigationHistory = []; resetBrowserNavigationState(); productionStatusFilter = 'All'; poSelected.clear(); renderAll(); }
+    function setRole(role) { currentRole = role; expandedGroups = {}; currentPage = 'dashboard'; navigationHistory = []; resetBrowserNavigationState(); productionStatusFilter = 'All'; poSelected.clear(); renderAll(); launchApiInit(); }
     function navigate(page, options = {}) {
       if (page === 'sim-history') page = 'sim-launch';
       if (page === 'production-board') page = 'po-list';
@@ -2270,8 +2363,13 @@
       const failures = ADMIN_LOGIN_EVENTS.filter(event => event.result === 'Failed').length;
       const referenceEntries = Object.values(ADMIN_REFERENCE_LISTS).reduce((sum,list) => sum + list.entries.length,0);
       const attentionUsers = ADMIN_USERS.filter(user => user.locked || user.status === 'Inactive');
+      const backend = launchApi.snapshot;
+      const backendSummary = backend
+        ? `<div class="admin-backend-strip"><span class="admin-backend-state online"></span><div><strong>${backend.backend}</strong><span>Persistent demo API connected</span></div><dl><div><dt>Users</dt><dd>${backend.users}</dd></div><div><dt>Projects</dt><dd>${backend.projects}</dd></div><div><dt>Assignments</dt><dd>${backend.assignments}</dd></div><div><dt>POs</dt><dd>${backend.purchase_orders}</dd></div><div><dt>Launches</dt><dd>${backend.launches}</dd></div></dl></div>`
+        : `<div class="admin-backend-strip offline"><span class="admin-backend-state"></span><div><strong>Local demo mode</strong><span>${launchApi.loading ? 'Connecting to FastAPI...' : 'FastAPI is unavailable; current mock data remains usable.'}</span></div></div>`;
       return `<div class="admin-shell">
   <div class="admin-head"><div><h2>Administration</h2></div><div class="admin-head-actions"><button class="btn primary" onclick="adminOpenUserForm('create')">${icon('plus','')} Create User</button></div></div>
+  ${backendSummary}
   <div class="admin-kpis">
     <div class="admin-kpi"><div class="admin-kpi-top"><span class="admin-kpi-label">Active Accounts</span><span class="admin-kpi-icon">${icon('users','')}</span></div><div class="admin-kpi-value">${active}</div></div>
     <div class="admin-kpi"><div class="admin-kpi-top"><span class="admin-kpi-label">Locked Accounts</span><span class="admin-kpi-icon">${icon('lock','')}</span></div><div class="admin-kpi-value" style="color:${locked ? 'var(--danger)' : '#000'};">${locked}</div></div>
@@ -3561,7 +3659,6 @@
           </div>
           <div class="ws-actions-row">
             ${canWriteProject(project) ? permBtn('uploadPo', 'Add PO', 'plus', `startPoUpload('${inlineJsValue(project.name)}')`) : ''}
-            <button class="btn" onclick="showProjectTab('Project BOM')">${icon('bom','')} Open Project BOM</button>
             ${canWriteProject(project) ? permBtn('editRecord', 'Edit Project', null, `openProjectForm('edit', '${project.id}')`, "primary") : ''}
           </div>
         </div>
@@ -4659,7 +4756,12 @@
     }
 
     /* ============ SIMULATION WORKSPACE ============ */
-    function setSimScope(scope) { if (mfgSimulationContext.active) return; simScope = scope; renderPage(); }
+    function setSimScope(scope) {
+      if (mfgSimulationContext.active || !['single','selected'].includes(scope)) return;
+      simScope = scope;
+      simResult = null;
+      renderPage();
+    }
     function setSimProject(v) { if (mfgSimulationContext.active) return; simProject = v; renderPage(); }
     function toggleSimUseCurrentVersions(v) {
       simUseCurrentVersions = v;
@@ -4689,14 +4791,28 @@
       else { activeTab.pn = 'BOM Versions'; navigate('pn-workspace'); }
     }
     function setVersionCompareSearch(v) { versionCompareSearch = v; renderPage(); }
-    function toggleSimPo(id) { simSelectedPOs.has(id) ? simSelectedPOs.delete(id) : simSelectedPOs.add(id); renderPage(); }
+    function toggleSimPo(id) { simSelectedPOs.has(id) ? simSelectedPOs.delete(id) : simSelectedPOs.add(id); simResult = null; renderPage(); }
     function toggleSimAllPos() {
-      const list = POS.filter(p => p.project === simProject);
+      const list = POS.filter(p => poLifecycle(p.id) !== 'Delivered');
       const allSelected = list.length > 0 && list.every(p => simSelectedPOs.has(p.id));
       if (allSelected) { list.forEach(p => simSelectedPOs.delete(p.id)); } else { list.forEach(p => simSelectedPOs.add(p.id)); }
+      simResult = null;
       renderPage();
     }
-    function setSimSinglePo(id) { if (mfgSimulationContext.active) return; simSinglePO = id; renderPage(); }
+    function setSimSinglePo(id) {
+      if (mfgSimulationContext.active) return;
+      simSinglePO = id;
+      simProject = POS.find(po => po.id === id)?.project || simProject;
+      simResult = null;
+      renderPage();
+    }
+    function setSimStockBasis(basis) {
+      if (!['real','net_reserved'].includes(basis)) return;
+      simStockBasis = basis;
+      simResult = null;
+      if (mfgSimulationContext.active) mfgInvalidateLaunchApproval();
+      renderPage();
+    }
     function toggleSimSource(key) {
       simSources[key] = !simSources[key];
       if (mfgSimulationContext.active) mfgInvalidateLaunchApproval();
@@ -4734,6 +4850,19 @@
       simMeetingSaved = true;
       renderPage();
     }
+    function uploadMfgMeetingMinutes(input) {
+      const file = input?.files?.[0];
+      if (!file) return;
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        input.value = '';
+        return openModal('PDF required', 'Upload the meeting minutes as a PDF document.');
+      }
+      simMeetingFileName = file.name;
+      simMeetingFile = file;
+      simMeetingMinutes = file.name;
+      simMeetingSaved = true;
+      renderPage();
+    }
     function setSimIncomingDraft(key, value) {
       simIncomingMaterialDraft[key] = value;
       renderPage();
@@ -4753,28 +4882,31 @@
 
     function getSimTargetPOs() {
       if (mfgSimulationContext.active) return POS.filter(p => p.id === mfgWizard.po);
-      if (simScope === 'project') return POS.filter(p => p.project === simProject);
       if (simScope === 'selected') return POS.filter(p => simSelectedPOs.has(p.id));
       if (simScope === 'single') return POS.filter(p => p.id === simSinglePO);
       return [];
     }
 
-    /* M05-FR-02/03: total available material = warehouse stock + remaining usable WIP material
-       (+ transit, treated as a visibility toggle for what's counted) (+ incoming planned stock,
-       future mode only, FR-15). Returns available-per-material map. */
+    function simReservedByMaterial() {
+      const reserved = {};
+      MFG_DELIVERIES
+        .filter(delivery => !['Delivered','Cancelled','Expired'].includes(delivery.status))
+        .forEach(delivery => (delivery.materials || []).forEach(line => {
+          reserved[line.code] = (reserved[line.code] || 0) + Number(line.qty || line.required || 0);
+        }));
+      return reserved;
+    }
+
+    /* Total available material = warehouse stock + remaining usable WIP material.
+       In reservation-aware mode, quantities frozen by open launch instructions are deducted
+       before allocation. Transit and planned inbound quantities are excluded from both bases. */
     function simAvailableByMaterial() {
       const avail = {};
+      const reserved = simStockBasis === 'net_reserved' ? simReservedByMaterial() : {};
       MATERIALS.forEach(m => {
-        let a = simSources.warehouse ? m.warehouse : 0;
-        if (simSources.wip) a += m.cutman + m.wip;
-        if (simSources.transit) a += m.transit;
-        avail[m.code] = a;
+        const a = Number(m.warehouse || 0) + Number(m.cutman || 0) + Number(m.wip || 0);
+        avail[m.code] = Math.max(0, a - Number(reserved[m.code] || 0));
       });
-      if (simMode === 'future') {
-        simIncomingMaterials.forEach(item => {
-          if (avail[item.material] != null) avail[item.material] += Number(item.qty) || 0;
-        });
-      }
       return avail;
     }
 
@@ -4825,7 +4957,7 @@
       const canLaunch = materialRows.length > 0 && missingRows.length === 0;
       const executedAt = new Date().toISOString().slice(0,16).replace('T',' ');
       simResult = {
-        mode:'current',scope:'manufacturing_launch',targetPOs:[mfgWizard.po],project:mfgWizard.project,sources:{ ...simSources },safety:simSafetyCoef,
+        mode:'current',scope:'manufacturing_launch',targetPOs:[mfgWizard.po],project:mfgWizard.project,sources:{ ...simSources },stockBasis:simStockBasis,safety:simSafetyCoef,
         poVersion:simUseCurrentVersions ? 'Current' : simPoVersion,bomVersion:simUseCurrentVersions ? 'Current' : simBomVersion,
         date:executedAt,executedBy:productionActor(),canLaunch,readiness,missingCount:missingRows.length,missingRows,materialRows,fgpnPlan,
         fingerprint:mfgLaunchFingerprint(),fullyLaunched:canLaunch ? 1 : 0,partiallyLaunched:0,notLaunched:canLaunch ? 0 : 1,
@@ -4915,8 +5047,10 @@
       simResult = {
         mode: simMode,
         targetPOs: orderedPOs.map(p => p.id),
-        project: simProject,
+        project: [...new Set(orderedPOs.map(po => po.project))].join(', '),
         scope: simScope,
+        stockBasis: simStockBasis,
+        reservedByMaterial: simStockBasis === 'net_reserved' ? simReservedByMaterial() : {},
         sources: { ...simSources },
         safety: simSafetyCoef,
         priorityRule: simPriorityRule,
@@ -5002,10 +5136,12 @@
       const launchContext = mfgSimulationContext.active;
       const launchFgpns = launchContext ? (mfgWizard.fgpns || []) : [];
       const launchQty = launchContext ? launchFgpns.reduce((sum,fgpn) => sum + Number(mfgWizard.fgpnQtys?.[fgpn] || 0),0) : 0;
-      const projectOptions = uniqueValues(PROJECTS, 'name');
-      const projectPos = POS.filter(p => p.project === simProject);
-      const allProjectPosSelected = projectPos.length > 0 && projectPos.every(p => simSelectedPOs.has(p.id));
+      const simulationPos = POS.filter(po => poLifecycle(po.id) !== 'Delivered');
+      const projectOptions = [...new Set(simulationPos.map(po => po.project))];
+      const poGroups = projectOptions.map(project => ({ project, pos:simulationPos.filter(po => po.project === project) }));
+      const allProjectPosSelected = simulationPos.length > 0 && simulationPos.every(p => simSelectedPOs.has(p.id));
       const targetPOs = getSimTargetPOs();
+      const selectedProjects = [...new Set(targetPOs.map(po => po.project))];
       const meetingReady = !launchContext || simMeetingSaved;
       const canRun = targetPOs.length > 0 && meetingReady && can('runSimulation') === true;
       const isMultiPo = targetPOs.length > 1;
@@ -5016,26 +5152,11 @@
 
     ${launchContext ? `<div class="sim-launch-scope">${icon('check','')}<div><strong class="mono">${mfgWizard.po}</strong><span>${launchFgpns.length} PN${launchFgpns.length === 1 ? '' : 's'} · ${launchQty.toLocaleString()} units</span></div></div>` : `
     <div class="sim-control-section">
-      <label class="sim-field-label">Mode</label>
-      <div class="sim-segmented sim-mode-switch">
-        <button class="${simMode === 'current' ? 'active' : ''}" onclick="setSimMode('current')">Current Stock</button>
-        <button class="${simMode === 'future' ? 'active' : ''}" onclick="setSimMode('future')">Future Stock</button>
-      </div>
-    </div>
-
-    <div class="sim-control-section">
       <div class="sim-field">
-        <label class="sim-field-label">Project</label>
-        <select class="sim-select" onchange="setSimProject(this.value)">
-          ${projectOptions.map(p => `<option value="${p}" ${simProject === p ? 'selected' : ''}>${p}</option>`).join('')}
-        </select>
-      </div>
-      <div class="sim-field">
-        <label class="sim-field-label">Scope</label>
+        <label class="sim-field-label">Simulation Scope</label>
         <div class="sim-segmented sim-scope-switch">
-          <button class="${simScope === 'project' ? 'active' : ''}" onclick="setSimScope('project')">Project</button>
-          <button class="${simScope === 'selected' ? 'active' : ''}" onclick="setSimScope('selected')">Selected POs</button>
           <button class="${simScope === 'single' ? 'active' : ''}" onclick="setSimScope('single')">Single PO</button>
+          <button class="${simScope === 'selected' ? 'active' : ''}" onclick="setSimScope('selected')">Multiple POs</button>
         </div>
       </div>
     </div>
@@ -5050,17 +5171,17 @@
 
     ${simScope === 'selected' ? `
     <div class="sim-control-section sim-field">
-      <label class="sim-field-label">Purchase Orders</label>
+      <div class="sim-section-line"><label class="sim-field-label">Purchase Orders</label><span class="sim-selection-total">${targetPOs.length} selected across ${selectedProjects.length} project${selectedProjects.length === 1 ? '' : 's'}</span></div>
       <div class="select-all-row" onclick="toggleSimAllPos()">
-        <input type="checkbox" onclick="event.stopPropagation(); toggleSimAllPos()" ${allProjectPosSelected ? 'checked' : ''}/> Select All POs
+        <input type="checkbox" onclick="event.stopPropagation(); toggleSimAllPos()" ${allProjectPosSelected ? 'checked' : ''}/> Select all available POs
       </div>
-      <div class="po-check-list">
-        ${projectPos.length ? projectPos.map(p => `
-          <div class="po-check-row" onclick="toggleSimPo('${p.id}')">
-            <input type="checkbox" onclick="event.stopPropagation(); toggleSimPo('${p.id}')" ${simSelectedPOs.has(p.id) ? 'checked' : ''}/>
-            <span class="pc-id">${p.id}</span>
-            <span class="pc-status">${statusBadge(p.status, p.statusType)}</span>
-          </div>`).join('') : `<div style="padding:14px; font-size:12px; color:var(--ink-faint);">No POs for this project.</div>`}
+      <div class="sim-po-groups">
+        ${poGroups.map(group => `<section class="sim-po-group"><header><strong>${group.project}</strong><span>${group.pos.length} PO${group.pos.length === 1 ? '' : 's'}</span></header><div class="po-check-list">${group.pos.map(p => `
+          <label class="po-check-row">
+            <input type="checkbox" onchange="toggleSimPo('${p.id}')" ${simSelectedPOs.has(p.id) ? 'checked' : ''}/>
+            <span><b class="pc-id">${p.id}</b><small>${p.customer} · Delivery ${p.delivery}</small></span>
+            <span class="pc-status">${statusBadge(poLifecycle(p.id), productionStatusType(poLifecycle(p.id)))}</span>
+          </label>`).join('')}</div></section>`).join('')}
       </div>
     </div>` : ''}
 
@@ -5068,8 +5189,9 @@
     <div class="sim-control-section sim-field">
       <label class="sim-field-label">Purchase Order</label>
       <select class="sim-select" onchange="setSimSinglePo(this.value)" ${launchContext ? 'disabled' : ''}>
-        ${projectPos.length ? projectPos.map(p => `<option value="${p.id}" ${simSinglePO === p.id ? 'selected' : ''}>${p.id} — ${p.status}</option>`).join('') : `<option value="">No POs for this project</option>`}
+        ${poGroups.map(group => `<optgroup label="${group.project}">${group.pos.map(p => `<option value="${p.id}" ${simSinglePO === p.id ? 'selected' : ''}>${p.id} · ${p.customer} · ${poLifecycle(p.id)}</option>`).join('')}</optgroup>`).join('')}
       </select>
+      ${targetPOs[0] ? `<div class="sim-single-po-context"><span>${targetPOs[0].project}</span><strong>${targetPOs[0].customer}</strong><small>Required delivery ${targetPOs[0].delivery}</small></div>` : ''}
     </div>` : ''}
 
     ${isMultiPo ? `
@@ -5081,65 +5203,24 @@
     </div>` : ''}`}
 
     <div class="sim-control-section sim-field">
-      <label class="sim-field-label">Stock Sources</label>
-      <div class="sim-source-grid"><label class="source-check-row" onclick="toggleSimSource('warehouse')">
-        <input type="checkbox" onclick="event.stopPropagation(); toggleSimSource('warehouse')" ${simSources.warehouse ? 'checked' : ''}/>
-        <span class="src-label">Warehouse</span>
-      </label>
-      <label class="source-check-row" onclick="toggleSimSource('wip')">
-        <input type="checkbox" onclick="event.stopPropagation(); toggleSimSource('wip')" ${simSources.wip ? 'checked' : ''}/>
-        <span class="src-label">Usable WIP</span>
-      </label>
-      <label class="source-check-row" onclick="toggleSimSource('transit')">
-        <input type="checkbox" onclick="event.stopPropagation(); toggleSimSource('transit')" ${simSources.transit ? 'checked' : ''}/>
-        <span class="src-label">Transit</span>
-      </label>
-      ${simMode === 'future' ? `<label class="source-check-row"><input type="checkbox" checked disabled/><span class="src-label">Planned</span></label>` : ''}</div>
-    </div>
-
-    ${simMode === 'future' ? `
-    <div class="sim-control-section sim-field sim-future-stock">
-      <label class="sim-field-label">Planned Materials</label>
-      <div class="sim-future-form">
-        <div class="sim-future-fields">
-          <select class="sim-select" onchange="setSimIncomingDraft('material', this.value)">
-            ${MATERIALS.map(m => `<option value="${m.code}" ${simIncomingMaterialDraft.material === m.code ? 'selected' : ''}>${m.code}</option>`).join('')}
-          </select>
-          <input class="sim-select" type="number" min="0" placeholder="Qty" value="${simIncomingMaterialDraft.qty}" oninput="setSimIncomingDraft('qty', Number(this.value))" />
-          <input class="sim-select" type="date" value="${simIncomingMaterialDraft.arrival}" onchange="setSimIncomingDraft('arrival', this.value)" />
-          <input class="sim-select" type="text" placeholder="Supplier" value="${simIncomingMaterialDraft.supplier}" oninput="setSimIncomingDraft('supplier', this.value)" />
-        </div>
-        <div class="sim-future-actions">
-          <select class="sim-select" onchange="setSimIncomingDraft('status', this.value)">
-            <option value="Expected" ${simIncomingMaterialDraft.status === 'Expected' ? 'selected' : ''}>Expected</option>
-            <option value="Confirmed" ${simIncomingMaterialDraft.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-            <option value="Delayed" ${simIncomingMaterialDraft.status === 'Delayed' ? 'selected' : ''}>Delayed</option>
-          </select>
-          <button class="btn sm" onclick="addSimIncomingMaterial()">Add Material</button>
-        </div>
-        <div class="sim-future-table">
-          <table style="width:100%; border-collapse:collapse;">
-            <thead><tr style="background:var(--bg);"><th style="padding:10px; text-align:left;">Material</th><th style="padding:10px; text-align:left;">Qty</th><th style="padding:10px; text-align:left;">Arrival</th><th style="padding:10px; text-align:left;">Supplier</th><th style="padding:10px; text-align:left;">Status</th><th style="padding:10px; text-align:right;"> </th></tr></thead>
-            <tbody>${simIncomingMaterials.map((item, index) => `
-              <tr>
-                <td class="mono" style="padding:10px;">${item.material}</td>
-                <td class="mono" style="padding:10px;">${item.qty}</td>
-                <td class="mono" style="padding:10px;">${item.arrival}</td>
-                <td style="padding:10px;">${item.supplier}</td>
-                <td style="padding:10px;">${item.status}</td>
-                <td style="padding:10px; text-align:right;"><button class="btn sm" onclick="removeSimIncomingMaterial(${index})">Remove</button></td>
-              </tr>`).join('')}</tbody>
-          </table>
-        </div>
+      <label class="sim-field-label">Stock Calculation</label>
+      <div class="sim-stock-basis" role="radiogroup" aria-label="Stock calculation basis">
+        <button role="radio" aria-checked="${simStockBasis === 'real'}" class="${simStockBasis === 'real' ? 'active' : ''}" onclick="setSimStockBasis('real')">
+          <span class="sim-basis-radio"></span><span><strong>Real stock only</strong><small>Warehouse stock + usable WIP</small></span>
+        </button>
+        <button role="radio" aria-checked="${simStockBasis === 'net_reserved'}" class="${simStockBasis === 'net_reserved' ? 'active' : ''}" onclick="setSimStockBasis('net_reserved')">
+          <span class="sim-basis-radio"></span><span><strong>Account for reserved stock</strong><small>Real stock minus quantities frozen by planned launches</small></span>
+        </button>
       </div>
-    </div>` : ''}
+      <div class="sim-formula-note">${icon('info','')}<span>${simStockBasis === 'real' ? 'Available = warehouse + usable WIP' : 'Available = warehouse + usable WIP − frozen/reserved quantities'}</span></div>
+    </div>
 
     <div class="sim-safety-row">
       <span>Safety Coefficient</span><strong>${simSafetyCoef}×</strong>
     </div>
 
     <div class="sim-run-area">
-      ${can('runSimulation') === false ? '' : `<button id="simRunButton" class="sim-run-btn" ${canRun ? '' : 'disabled'} onclick="runSimulation()">${icon('sim', '')} ${launchContext ? 'Run Launch Approval Simulation' : `Run ${simMode === 'future' ? 'Future-Stock ' : ''}Simulation`}</button>`}
+      ${can('runSimulation') === false ? '' : `<button id="simRunButton" class="sim-run-btn" ${canRun ? '' : 'disabled'} onclick="runSimulation()">${icon('sim', '')} ${launchContext ? 'Run Launch Approval Simulation' : 'Run Simulation'}</button>`}
       ${can('runSimulation') === 'view' ? `<div class="locked-note">${icon('lock', '')} View only — your role cannot run simulations</div>` : ''}
       ${launchContext && !meetingReady && can('runSimulation') === true ? `<div class="sim-inline-warning">Meeting minutes must be saved in the manufacturing instruction.</div>` : ''}
     </div>
@@ -5157,7 +5238,8 @@
       <div class="sim-empty-copy">Select the scope and run the material check.</div>
     </div>`;
 
-      const enabledSources = [simSources.warehouse && 'Warehouse', simSources.wip && 'WIP', simSources.transit && 'Transit', simMode === 'future' && 'Planned'].filter(Boolean);
+      const stockBasisLabel = simStockBasis === 'net_reserved' ? 'Net of reservations' : 'Real stock only';
+      const projectSummary = selectedProjects.length > 1 ? `${selectedProjects.length} projects` : (selectedProjects[0] || simProject);
 
       return `
   <div class="page-title-row sim-page-head"><div><div class="page-title">${launchContext ? 'Manufacturing Launch Simulation' : 'Launch Simulation'}</div><div class="page-sub">${launchContext ? `${mfgWizard.po} · ${launchQty.toLocaleString()} units` : 'Material availability and launch capacity'}</div></div>
@@ -5165,9 +5247,9 @@
   </div>
   ${launchContext ? `<div class="mfg-sim-context"><div class="mfg-sim-context-main"><div class="mfg-sim-context-icon">${icon('sim','')}</div><div><strong>Launch Approval</strong><span>${mfgWizard.project}</span></div></div><div class="mfg-sim-context-stat"><span>Purchase Order</span><strong>${mfgWizard.po}</strong></div><div class="mfg-sim-context-stat"><span>Selected PNs</span><strong>${launchFgpns.length}</strong></div><div class="mfg-sim-context-stat"><span>Quantity</span><strong>${launchQty.toLocaleString()}</strong></div></div>` : ''}
   <div class="sim-overview-strip">
-    <div class="sim-summary-card"><div class="sim-summary-top"><span class="sim-summary-label">Project</span>${icon('projects','')}</div><div class="sim-summary-value">${simProject}</div></div>
+    <div class="sim-summary-card"><div class="sim-summary-top"><span class="sim-summary-label">${selectedProjects.length > 1 ? 'Projects' : 'Project'}</span>${icon('projects','')}</div><div class="sim-summary-value">${projectSummary}</div></div>
     <div class="sim-summary-card"><div class="sim-summary-top"><span class="sim-summary-label">Target</span>${icon('po','')}</div><div class="sim-summary-value">${launchContext ? `${launchFgpns.length} PNs · ${launchQty.toLocaleString()} units` : targetPOs.length ? `${targetPOs.length} purchase order${targetPOs.length===1?'':'s'}` : 'Not selected'}</div></div>
-    <div class="sim-summary-card"><div class="sim-summary-top"><span class="sim-summary-label">Stock basis</span>${icon('stock','')}</div><div class="sim-summary-value">${enabledSources.join(' + ') || 'None'}</div></div>
+    <div class="sim-summary-card"><div class="sim-summary-top"><span class="sim-summary-label">Stock basis</span>${icon('stock','')}</div><div class="sim-summary-value">${stockBasisLabel}</div></div>
     <div class="sim-summary-card"><div class="sim-summary-top"><span class="sim-summary-label">Safety Coefficient</span>${icon('scale','')}</div><div class="sim-summary-value">${simSafetyCoef}×</div></div>
   </div>
   <div class="sim-layout">
@@ -5242,7 +5324,7 @@
     <div class="sim-result-ring" style="--pct:${Math.min(100,res.readiness)};--ring:${res.readiness>=100?'var(--success)':res.readiness>=60?'var(--warning)':'var(--danger)'}"><span>${res.readiness}%</span></div>
   </div>
   <div class="sim-metadata-grid">
-    <div class="sim-meta-card"><div class="sim-meta-label">Mode</div><div class="sim-meta-value">${res.mode === 'future' ? 'Future-stock planning' : 'Current real stock'}</div></div>
+    <div class="sim-meta-card"><div class="sim-meta-label">Stock calculation</div><div class="sim-meta-value">${res.stockBasis === 'net_reserved' ? 'Real stock minus reservations' : 'Real stock only'}</div></div>
     <div class="sim-meta-card"><div class="sim-meta-label">Project</div><div class="sim-meta-value">${res.project}</div></div>
     <div class="sim-meta-card"><div class="sim-meta-label">Purchase orders</div><div class="sim-meta-value mono">${res.targetPOs.join(', ')}</div></div>
     <div class="sim-meta-card"><div class="sim-meta-label">Versions</div><div class="sim-meta-value">PO ${res.poVersion} · BOM ${res.bomVersion}</div></div>
@@ -6182,7 +6264,7 @@
   </div>`;
     }
 
-    /* ---- Create Delivery Wizard (4 steps per M08 spec) ---- */
+    /* ---- Create Delivery Wizard ---- */
     function mfgWizardGoStep(n) { mfgWizardStep = n; renderPage(); }
     function mfgDeliveryPnQuantities(delivery) {
       if (Array.isArray(delivery?.fgpnQuantities)) return delivery.fgpnQuantities;
@@ -6207,7 +6289,7 @@
     }
     function mfgEligibleOrders(poId) { return poFinishedGoods(poId).filter(part => mfgPnLaunchSummary(poId,part.fgpn).remaining > 0).map(part => ({ id:`PLAN-${part.fgpn}`, po:poId, project:part.project, customer:POS.find(po => po.id === poId)?.customer || '', fgpn:part.fgpn, qty:part.ordered, status:'Unplanned', due:POS.find(po => po.id === poId)?.delivery || 'Not set', desc:part.desc })); }
     function mfgEligiblePos(projectName) { return POS.filter(po => po.project === projectName && ['Unplanned','In Progress'].includes(poLifecycle(po.id)) && mfgEligibleOrders(po.id).length > 0); }
-    function mfgResetLineSelection() { mfgWizard.selectedMaterials = {}; mfgWizard.qtys = {}; mfgWizard.itemTimes = {}; }
+    function mfgResetLineSelection() { mfgWizard.selectedMaterials = {}; mfgWizard.qtys = {}; mfgWizard.itemTimes = {}; mfgWizard.feasibility = null; }
     function mfgWizardSetPo(v) {
       mfgInvalidateLaunchApproval();
       mfgWizard.po = v;
@@ -6243,6 +6325,7 @@
       mfgWizard.fgpns = [...selected];
       mfgWizard.fgpn = mfgWizard.fgpns[0] || '';
       mfgResetLineSelection();
+      mfgWizardPrefillMaterials();
       renderPage();
     }
     function mfgWizardSelectAllFgpns(checked) {
@@ -6253,13 +6336,24 @@
       if (checked) eligible.forEach(order => { mfgWizard.fgpnQtys[order.fgpn] = mfgPnLaunchSummary(mfgWizard.po,order.fgpn).remaining; });
       mfgWizard.fgpn = mfgWizard.fgpns[0] || '';
       mfgResetLineSelection();
+      mfgWizardPrefillMaterials();
       renderPage();
+    }
+    function mfgWizardSanitizeFgpns() {
+      const eligible = new Set(mfgEligibleOrders(mfgWizard.po).map(order => order.fgpn));
+      mfgWizard.fgpns = (mfgWizard.fgpns || []).filter(fgpn => eligible.has(fgpn));
+      Object.keys(mfgWizard.fgpnQtys || {}).forEach(fgpn => {
+        if (!eligible.has(fgpn)) delete mfgWizard.fgpnQtys[fgpn];
+      });
+      mfgWizard.fgpn = mfgWizard.fgpns[0] || '';
+      return mfgWizard.fgpns;
     }
     function mfgWizardSetFgpnQty(fgpn, value) {
       mfgInvalidateLaunchApproval();
       const remaining = mfgPnLaunchSummary(mfgWizard.po,fgpn).remaining;
       mfgWizard.fgpnQtys[fgpn] = Math.max(0,Math.min(remaining,parseInt(value,10) || 0));
       mfgResetLineSelection();
+      mfgWizardPrefillMaterials();
       renderPage();
     }
     function mfgBomKeyForFgpn(fgpn, poId) {
@@ -6299,6 +6393,14 @@
       return [...aggregate.values()];
     }
     function mfgDefaultItemTime() { return `${mfgWizard.deliveryDate || new Date().toISOString().slice(0,10)}T${mfgWizard.deliveryTime || '09:00'}`; }
+    function mfgWizardPrefillMaterials() {
+      mfgMaterialsForSelection(mfgWizard.po,mfgWizard.fgpns).forEach(row => {
+        mfgWizard.selectedMaterials[row.code] = true;
+        mfgWizard.qtys[row.code] = Number(row.required || 0);
+        mfgWizard.itemTimes[row.code] = mfgDefaultItemTime();
+      });
+      mfgWizard.feasibility = null;
+    }
     function mfgWizardToggleMaterial(code, checked) {
       const row = mfgMaterialsForSelection(mfgWizard.po,mfgWizard.fgpns).find(item => item.code === code);
       if (checked && row) {
@@ -6324,8 +6426,36 @@
     }
     function mfgWizardSetQty(code, v) {
       const row = mfgMaterialsForSelection(mfgWizard.po,mfgWizard.fgpns).find(item => item.code === code);
-      mfgWizard.qtys[code] = Math.max(0,Math.min(Number(row?.warehouse || 0),parseInt(v,10) || 0));
+      const available = Number(row?.warehouse || 0) + Number(row?.wip || 0);
+      mfgWizard.qtys[code] = Math.max(0,Math.min(available,parseInt(v,10) || 0));
+      mfgWizard.feasibility = null;
       renderPage();
+    }
+    function mfgWizardFeasibilityFingerprint() {
+      return JSON.stringify({ po:mfgWizard.po,fgpns:mfgWizard.fgpns,fgpnQtys:mfgWizard.fgpnQtys,qtys:mfgWizard.qtys });
+    }
+    function mfgWizardCheckFeasibility() {
+      mfgWizardSanitizeFgpns();
+      const rows = mfgMaterialsForSelection(mfgWizard.po,mfgWizard.fgpns);
+      const shortages = rows.reduce((list,row) => {
+        const required = Number(row.required || 0);
+        mfgWizard.qtys[row.code] = required;
+        const requested = Number(mfgWizard.qtys[row.code] || 0);
+        const available = Number(row.warehouse || 0) + Number(row.wip || 0);
+        if (requested < required || requested > available) list.push({
+          code:row.code,
+          required,
+          requested,
+          available,
+          missing:Math.max(0,required - Math.min(requested,available))
+        });
+        return list;
+      },[]);
+      mfgWizard.feasibility = { ok:rows.length > 0 && shortages.length === 0,shortages,fingerprint:mfgWizardFeasibilityFingerprint() };
+      renderPage();
+    }
+    function mfgWizardFeasibilityPassed() {
+      return !!(mfgWizard.feasibility?.ok && mfgWizard.feasibility.fingerprint === mfgWizardFeasibilityFingerprint());
     }
     function mfgWizardSetItemTime(code, value) { mfgWizard.itemTimes[code] = value; }
     function mfgWizardContinueFromContext() {
@@ -6333,6 +6463,7 @@
       mfgWizardStep = 2; renderPage();
     }
     function mfgWizardContinueFromParts() {
+      mfgWizardSanitizeFgpns();
       if (!(mfgWizard.fgpns || []).length) return openModal('Select at least one PN','Choose one or more eligible Finished Good Part Numbers.');
       const invalid = mfgWizard.fgpns.find(fgpn => {
         const qty = Number(mfgWizard.fgpnQtys[fgpn] || 0);
@@ -6340,6 +6471,11 @@
         return !(qty > 0) || qty > remaining;
       });
       if (invalid) return openModal('Launch quantity required',`Enter a launch quantity between 1 and ${mfgPnLaunchSummary(mfgWizard.po,invalid).remaining.toLocaleString()} for ${invalid}.`);
+      if (!mfgWizardFeasibilityPassed()) return;
+      mfgMaterialsForSelection(mfgWizard.po,mfgWizard.fgpns).forEach(row => {
+        mfgWizard.selectedMaterials[row.code] = true;
+        mfgWizard.itemTimes[row.code] = mfgWizard.itemTimes[row.code] || mfgDefaultItemTime();
+      });
       mfgWizardStep = 3; renderPage();
     }
     function mfgWizardContinueFromItems() {
@@ -6435,7 +6571,7 @@
       navigateBack('mfg-delivery-create');
     }
     function mfgWizardCanCreateDelivery() {
-      return simMeetingSaved && mfgWizardLaunchApproved();
+      return simMeetingSaved && mfgWizardFeasibilityPassed();
     }
     function mfgAuditEvent(action, delivery, details) {
       AUDIT_LOGS.unshift({
@@ -6450,9 +6586,9 @@
         details,
       });
     }
-    function mfgWizardSaveInstruction() {
+    async function mfgWizardSaveInstruction() {
       if (!mfgWizardCanCreateDelivery()) {
-        return openModal('Cannot create delivery', 'Delivery instructions require an approved launch and saved meeting minutes.');
+        return openModal('Cannot create delivery', 'Delivery instructions require a passed feasibility check and meeting minutes PDF.');
       }
       const eligibleFgpns = new Set(mfgEligibleOrders(mfgWizard.po).map(order => order.fgpn));
       const selectedFgpns = [...new Set(mfgWizard.fgpns || [])].filter(fgpn => eligibleFgpns.has(fgpn));
@@ -6485,10 +6621,27 @@
       const earliestRequiredTime = [...selectedMaterials].sort((a,b) => a.requiredTime.localeCompare(b.requiredTime))[0].requiredTime;
       const [deliveryDate,deliveryTime = ''] = earliestRequiredTime.split('T');
       const now = new Date();
-      const code = generateMfgDeliveryCodeString();
-      const generatedAt = now.toISOString().slice(0,16).replace('T',' ');
-      const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString().slice(0,16).replace('T',' ');
+      let backendRecord = null;
+      if (launchApi.connected) {
+        if (!simMeetingFile) return openModal('Meeting minutes PDF required','Choose the meeting minutes PDF again before saving this instruction.');
+        const form = new FormData();
+        form.append('project',mfgWizard.project);
+        form.append('po',mfgWizard.po);
+        form.append('created_by',productionActor());
+        form.append('launch_lines',JSON.stringify(fgpnQuantities));
+        form.append('material_lines',JSON.stringify(selectedMaterials));
+        form.append('meeting_minutes',simMeetingFile,simMeetingFile.name);
+        try {
+          backendRecord = await launchApiRequest('/launches',{ method:'POST',body:form });
+        } catch (error) {
+          return openModal('Backend could not save the instruction',error.message);
+        }
+      }
+      const code = backendRecord?.code || generateMfgDeliveryCodeString();
+      const generatedAt = backendRecord ? String(backendRecord.created_at || '').slice(0,16).replace('T',' ') : now.toISOString().slice(0,16).replace('T',' ');
+      const expiresAt = backendRecord ? String(backendRecord.expires_at || '').slice(0,16).replace('T',' ') : new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString().slice(0,16).replace('T',' ');
       const newDelivery = {
+        backendId:backendRecord?.id || '',
         code,
         project: mfgWizard.project,
         po: mfgWizard.po,
@@ -6538,6 +6691,9 @@
       mfgWizard.code = '';
       mfgWizard.generatedAt = '';
       mfgWizard.expiresAt = '';
+      simMeetingFile = null;
+      simMeetingFileName = '';
+      simMeetingSaved = false;
       openModal('Instruction saved · code generated', `${code} is valid for 48 hours and can be used once by the Warehouse Team Leader.`);
       navigate('mfg-delivery-workspace',{ replace:true });
     }
@@ -6551,9 +6707,26 @@
       const lines = mfgDeliveryPnQuantities(delivery);
       return lines.map(line => `${line.fgpn}${line.qty == null ? '' : ` · ${Number(line.qty).toLocaleString()}`}`).join(', ') || 'PO scope';
     }
-    function mfgValidateDeliveryCode() {
+    async function mfgValidateDeliveryCode() {
       if (currentRole !== 'wh_lead') return openModal('Warehouse Team Leader action', 'Only the Warehouse Team Leader can access a delivery instruction with its code.');
       const code = mfgCodeVerification.code.trim();
+      if (launchApi.connected) {
+        try {
+          const record = await launchApiRequest('/warehouse/verify',{ method:'POST',body:JSON.stringify({ code }) });
+          const delivery = launchApiApplyLaunch(record);
+          openMfgDeliveryId = delivery.code;
+          mfgCodeVerification.message = 'Code accepted. Select the Manufacturing Receiver, then generate the delivery document.';
+          mfgCodeVerification.validDelivery = delivery;
+          mfgAuditEvent('Delivery code accessed',delivery,'Warehouse Team Leader successfully used the API-backed single-use delivery code.');
+          renderPage();
+          return;
+        } catch (error) {
+          mfgCodeVerification.message = error.message;
+          mfgCodeVerification.validDelivery = null;
+          renderPage();
+          return;
+        }
+      }
       const delivery = mfgFindDeliveryByCode(code);
       if (!delivery) {
         mfgCodeVerification.message = 'Invalid delivery code.';
@@ -6589,11 +6762,19 @@
       mfgAuditEvent('Delivery code accessed',delivery,'Warehouse Team Leader successfully used the single-use delivery code.');
       renderPage();
     }
-    function mfgSetDeliveryReceiver(value) {
+    async function mfgSetDeliveryReceiver(value) {
       if (currentRole !== 'wh_lead') return openModal('Warehouse Team Leader action', 'Only the Warehouse Team Leader can select the Manufacturing Receiver.');
       const delivery = mfgCodeVerification.validDelivery || MFG_DELIVERIES.find(d => d.code === openMfgDeliveryId);
       if (!delivery) return;
       delivery.receiver = value;
+      if (launchApi.connected && delivery.backendId) {
+        try {
+          const record = await launchApiRequest(`/warehouse/launches/${encodeURIComponent(delivery.backendId)}/receiver`,{ method:'PATCH',body:JSON.stringify({ receiver:value }) });
+          launchApiApplyLaunch(record);
+        } catch (error) {
+          return openModal('Receiver was not saved',error.message);
+        }
+      }
       renderPage();
     }
     function mfgDeliveryCopyCode(code) {
@@ -6762,12 +6943,20 @@
       if (!delivery?.documentGeneratedAt || !MFG_DELIVERY_RECEIVERS.includes(delivery.receiver)) return openModal('Document not available', 'Generate the delivery document after selecting the Manufacturing Receiver.');
       mfgDownloadDeliveryPdf(delivery);
     }
-    function mfgGenerateDeliveryDocument() {
+    async function mfgGenerateDeliveryDocument() {
       if (currentRole !== 'wh_lead') return openModal('Warehouse Team Leader action', 'Only the Warehouse Team Leader can generate the warehouse-to-manufacturing delivery document.');
       const delivery = mfgCodeVerification.validDelivery || MFG_DELIVERIES.find(d => d.code === openMfgDeliveryId);
       if (!delivery) return;
       if (!MFG_DELIVERY_RECEIVERS.includes(delivery.receiver)) {
         return openModal('Receiver required', 'Select a manufacturing receiver from the predefined list before generating the document.');
+      }
+      if (launchApi.connected && delivery.backendId) {
+        try {
+          const record = await launchApiRequest(`/warehouse/launches/${encodeURIComponent(delivery.backendId)}/document`, { method:'POST' });
+          launchApiApplyLaunch(record);
+        } catch (error) {
+          return openModal('Document could not be generated', error.message);
+        }
       }
       delivery.status = 'Document Generated';
       delivery.statusType = mfgStatusType('Document Generated');
@@ -6793,7 +6982,7 @@
       delivery[field] = value;
       renderPage();
     }
-    function mfgHandleSignedUpload(fileInput) {
+    async function mfgHandleSignedUpload(fileInput) {
       if (currentRole !== 'wh_lead') return openModal('Warehouse Team Leader action', 'Only the Warehouse Team Leader can upload the receiver-signed manufacturing reception document.');
       const file = fileInput.files[0];
       if (!file) return;
@@ -6804,6 +6993,17 @@
       }
       const delivery = MFG_DELIVERIES.find(d => d.code === openMfgDeliveryId);
       if (!delivery) return;
+      if (launchApi.connected && delivery.backendId) {
+        const form = new FormData();
+        form.append('signed_pdf', file, file.name);
+        try {
+          const record = await launchApiRequest(`/warehouse/launches/${encodeURIComponent(delivery.backendId)}/signed-reception`, { method:'POST', body:form });
+          launchApiApplyLaunch(record);
+        } catch (error) {
+          fileInput.value = '';
+          return openModal('Signed document was not saved', error.message);
+        }
+      }
       delivery.signedFileName = file.name;
       delivery.signedBy = productionActor();
       delivery.signedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
@@ -6825,7 +7025,7 @@
       openModal('Signed document uploaded · production started', `${delivery.po} is now ${after}. The signed reception document is stored and awaits Launch validation before warehouse stock is reduced.`);
       renderPage();
     }
-    function mfgConfirmDelivery() {
+    async function mfgConfirmDelivery() {
       const delivery = MFG_DELIVERIES.find(d => d.code === openMfgDeliveryId);
       if (!delivery) return;
       if (!['engineer','manager'].includes(currentRole)) {
@@ -6836,6 +7036,14 @@
       }
       if (delivery.status === 'Delivered') {
         return openModal('Already completed', 'This delivery has already been confirmed.');
+      }
+      if (launchApi.connected && delivery.backendId) {
+        try {
+          const record = await launchApiRequest(`/launches/${encodeURIComponent(delivery.backendId)}/confirm-reception`, { method:'POST' });
+          launchApiApplyLaunch(record);
+        } catch (error) {
+          return openModal('Reception could not be confirmed', error.message);
+        }
       }
       delivery.status = 'Delivered';
       delivery.statusType = mfgStatusType('Delivered');
@@ -6855,11 +7063,11 @@
         return `<div class="card">${emptyStateBlock('Insufficient permissions', 'Your role cannot create manufacturing deliveries.', null)}</div>`;
       }
       const step = mfgWizardStep;
-      const steps = ['Project & PO', 'PN Launch Quantities', 'Materials & Time', 'Review & Save'];
-      const simulationReady = mfgWizardLaunchApproved();
+      const steps = ['Project & PO', 'Launch Quantities', 'Review & Save'];
+      const simulationReady = mfgWizardFeasibilityPassed();
       const minutesReady = !!simMeetingSaved;
       const meetingReady = simulationReady && minutesReady;
-      const selectedFgpns = mfgWizard.fgpns || [];
+      const selectedFgpns = mfgWizardSanitizeFgpns();
 
       let body = '';
       if (step === 1) {
@@ -6896,6 +7104,9 @@
         const eligibleParts = mfgEligibleOrders(mfgWizard.po);
         const totalLaunchQty = selectedFgpns.reduce((sum,fgpn) => sum + Number(mfgWizard.fgpnQtys[fgpn] || 0),0);
         const allPartsSelected = eligibleParts.length > 0 && eligibleParts.every(order => selectedFgpns.includes(order.fgpn));
+        const materialRows = mfgMaterialsForSelection(mfgWizard.po,selectedFgpns);
+        const feasibilityPassed = mfgWizardFeasibilityPassed();
+        const feasibility = mfgWizard.feasibility;
         body = `<div class="card mfg-create-card">
       <div class="mfg-create-head"><div><h3>PN Launch Quantities</h3><span class="mfg-create-head-context mono">${mfgWizard.po}</span></div>${statusBadge(poLifecycle(mfgWizard.po),productionStatusType(poLifecycle(mfgWizard.po)))}</div>
       <div class="mfg-create-body">
@@ -6905,28 +7116,14 @@
           const pnKey = mfgBomKeyForFgpn(order.fgpn,mfgWizard.po);
           const pn = pnsForPo(mfgWizard.po).find(item => item.pn === pnKey);
           const summary = mfgPnLaunchSummary(mfgWizard.po,order.fgpn);
-          return `<div class="mfg-pn-option ${selected ? 'selected' : ''}"><input type="checkbox" aria-label="Select ${order.fgpn}" ${selected ? 'checked' : ''} onchange="mfgWizardToggleFgpn('${order.fgpn}',this.checked)"><div class="mfg-pn-main"><strong>${order.fgpn}</strong><span>${pn?.desc || order.desc || 'Finished good'} · Due ${order.due || 'not set'}</span></div><div class="mfg-pn-launch"><div class="mfg-pn-launch-meta"><div><span>PO Quantity</span><strong>${summary.ordered.toLocaleString()}</strong></div><div><span>In Manufacturing</span><strong>${summary.launched.toLocaleString()}</strong></div><div><span>Pending Transfer</span><strong>${summary.reserved.toLocaleString()}</strong></div><div><span>Available</span><strong>${summary.remaining.toLocaleString()}</strong></div></div><div class="mfg-pn-launch-input"><label>This Launch</label><input class="mfg-inline-input qty" type="number" min="1" max="${summary.remaining}" placeholder="0" value="${selected && Number(mfgWizard.fgpnQtys[order.fgpn]) > 0 ? mfgWizard.fgpnQtys[order.fgpn] : ''}" ${selected ? '' : 'disabled'} onchange="mfgWizardSetFgpnQty('${order.fgpn}',this.value)"></div></div></div>`;
+          const fgMaterials = materialRows.filter(row => row.fgpns.includes(order.fgpn));
+          return `<div class="mfg-pn-option ${selected ? 'selected' : ''}"><input type="checkbox" aria-label="Select ${order.fgpn}" ${selected ? 'checked' : ''} onchange="mfgWizardToggleFgpn('${order.fgpn}',this.checked)"><div class="mfg-pn-main"><strong>${order.fgpn}</strong><span>${pn?.desc || order.desc || 'Finished good'} · Due ${order.due || 'not set'}</span></div><div class="mfg-pn-launch"><div class="mfg-pn-launch-meta"><div><span>PO Quantity</span><strong>${summary.ordered.toLocaleString()}</strong></div><div><span>In Manufacturing</span><strong>${summary.launched.toLocaleString()}</strong></div><div><span>Pending Transfer</span><strong>${summary.reserved.toLocaleString()}</strong></div><div><span>Available</span><strong>${summary.remaining.toLocaleString()}</strong></div></div><div class="mfg-pn-launch-input"><label>This Launch</label><input class="mfg-inline-input qty" type="number" min="1" max="${summary.remaining}" placeholder="0" value="${selected && Number(mfgWizard.fgpnQtys[order.fgpn]) > 0 ? mfgWizard.fgpnQtys[order.fgpn] : ''}" ${selected ? '' : 'disabled'} onchange="mfgWizardSetFgpnQty('${order.fgpn}',this.value)"></div></div>${selected && Number(mfgWizard.fgpnQtys[order.fgpn]) > 0 ? `<details class="mfg-fg-materials"><summary><span>Materials for ${order.fgpn}</span><strong>${fgMaterials.length} material${fgMaterials.length === 1 ? '' : 's'}</strong></summary><div class="mfg-fg-material-list">${fgMaterials.map(row => { const required = Number(row.fgpnRequirements?.[order.fgpn] || 0); const available = Number(row.warehouse || 0) + Number(row.wip || 0); const shortage = Math.max(0,required - available); return `<div class="mfg-fg-material-row"><div><strong class="mono">${row.code}</strong><span>${row.desc}</span></div><div><span>Required</span><strong>${required.toLocaleString()} ${row.unit}</strong></div><div><span>Stock + WIP</span><strong class="${shortage ? 'stock-danger-text' : ''}">${available.toLocaleString()} ${row.unit}</strong></div><div><span>Used this launch</span><strong>${required.toLocaleString()} ${row.unit}</strong></div></div>`; }).join('')}</div></details>` : ''}</div>`;
         }).join('')}</div>
+        ${feasibility ? `<div class="mfg-feasibility ${feasibilityPassed ? 'passed' : 'failed'}"><div>${icon(feasibilityPassed ? 'check' : 'warning','')}<div><strong>${feasibilityPassed ? 'Configuration is feasible' : 'Configuration cannot be launched'}</strong><span>${feasibilityPassed ? 'Warehouse stock and usable WIP cover the selected material quantities.' : 'Correct the material quantities below, then run the check again.'}</span></div></div>${!feasibilityPassed ? `<div class="mfg-shortage-list">${feasibility.shortages.map(item => `<div><strong class="mono">${item.code}</strong><span>Required ${item.required.toLocaleString()} · entered ${item.requested.toLocaleString()} · available ${item.available.toLocaleString()}</span><b>${item.missing.toLocaleString()} missing</b></div>`).join('')}</div>` : ''}</div>` : ''}
       </div>
-      <div class="mfg-create-actions"><div><button class="btn" onclick="mfgWizardGoStep(1)">Back</button></div><div><span class="mfg-action-total">${selectedFgpns.length} PN${selectedFgpns.length === 1 ? '' : 's'} · ${totalLaunchQty.toLocaleString()} units</span><button class="btn primary" onclick="mfgWizardContinueFromParts()">Continue to Materials</button></div></div>
+      <div class="mfg-create-actions"><div><button class="btn" onclick="mfgWizardGoStep(1)">Back</button></div><div><span class="mfg-action-total">${selectedFgpns.length} PN${selectedFgpns.length === 1 ? '' : 's'} · ${totalLaunchQty.toLocaleString()} units</span><button class="btn secondary" onclick="mfgWizardCheckFeasibility()">${icon('sim','')} Check feasibility</button><button class="btn primary" onclick="mfgWizardContinueFromParts()" ${feasibilityPassed ? '' : 'disabled'}>Review Delivery</button></div></div>
     </div>`;
       } else if (step === 3) {
-        const rows = mfgMaterialsForSelection(mfgWizard.po,selectedFgpns);
-        const selectedCodes = Object.keys(mfgWizard.selectedMaterials || {}).filter(code => mfgWizard.selectedMaterials[code]);
-        const allSelected = rows.length > 0 && rows.every(row => mfgWizard.selectedMaterials[row.code]);
-        body = `<div class="card mfg-create-card">
-      <div class="mfg-create-head"><div><h3>Materials and Delivery Times</h3><span class="mfg-create-head-context">${selectedFgpns.length} selected PN${selectedFgpns.length === 1 ? '' : 's'}</span></div><span class="badge info">BOM</span></div>
-      <div class="mfg-create-body">
-        <div class="mfg-material-toolbar"><label class="mfg-select-all"><input type="checkbox" ${allSelected ? 'checked' : ''} onchange="mfgWizardSelectAllMaterials(this.checked)"> Select all materials</label><span class="mfg-action-total">${selectedCodes.length} selected</span></div>
-        <div class="table-scroll"><table class="mfg-material-table"><thead><tr><th>Select</th><th>Material PN</th><th>Description</th><th>Linked PNs</th><th>Available</th><th>Required</th><th>Delivery Qty</th><th>Unit</th><th>Required Time</th></tr></thead><tbody>${rows.map(row => {
-          const selected = !!mfgWizard.selectedMaterials[row.code];
-          return `<tr class="${selected ? 'selected' : ''}"><td><input type="checkbox" ${selected ? 'checked' : ''} onchange="mfgWizardToggleMaterial('${row.code}',this.checked)"></td><td class="mono" style="font-weight:600;">${row.code}</td><td>${row.desc}</td><td><div class="mfg-pn-tags">${row.fgpns.map(fgpn => `<span class="mfg-pn-tag">${fgpn}${row.fgpnRequirements?.[fgpn] ? ` · ${Number(row.fgpnRequirements[fgpn]).toLocaleString()}` : ''}</span>`).join('')}</div></td><td class="mono">${Number(row.warehouse || 0).toLocaleString()}</td><td class="mono">${Number(row.required || 0).toLocaleString()}</td><td><input class="mfg-inline-input qty" type="number" min="1" max="${row.warehouse}" value="${selected ? (mfgWizard.qtys[row.code] || '') : ''}" ${selected ? '' : 'disabled'} onchange="mfgWizardSetQty('${row.code}',this.value)"></td><td class="mono">${row.unit}</td><td><input class="mfg-inline-input time" type="datetime-local" value="${selected ? (mfgWizard.itemTimes[row.code] || mfgDefaultItemTime()) : ''}" ${selected ? '' : 'disabled'} onchange="mfgWizardSetItemTime('${row.code}',this.value)"></td></tr>`;
-        }).join('')}</tbody></table></div>
-        <div class="mfg-schedule-footer"><div class="mfg-create-field"><label>Priority</label><select class="sim-select" onchange="mfgWizard.priority=this.value">${['Normal','High','Urgent'].map(priority => `<option value="${priority}" ${mfgWizard.priority === priority ? 'selected' : ''}>${priority}</option>`).join('')}</select></div><div class="mfg-create-field"><label>Warehouse Notes <span style="font-weight:400;text-transform:none;">(optional)</span></label><textarea class="coef-input" placeholder="Handling or preparation notes" oninput="mfgWizard.notes=this.value">${poEsc(mfgWizard.notes)}</textarea></div></div>
-      </div>
-      <div class="mfg-create-actions"><div><button class="btn" onclick="mfgWizardGoStep(2)">Back</button></div><div><span class="mfg-action-total">${selectedCodes.length} materials</span><button class="btn primary" onclick="mfgWizardContinueFromItems()">Continue to Review</button></div></div>
-    </div>`;
-      } else if (step === 4) {
         const rows = mfgMaterialsForSelection(mfgWizard.po,selectedFgpns).filter(row => mfgWizard.selectedMaterials[row.code]);
         const launchPlan = selectedFgpns.map(fgpn => ({ fgpn,qty:Number(mfgWizard.fgpnQtys[fgpn] || 0),summary:mfgPnLaunchSummary(mfgWizard.po,fgpn) }));
         const totalLaunchQty = launchPlan.reduce((sum,line) => sum + line.qty,0);
@@ -6938,11 +7135,17 @@
         <div class="section-title">Material Transfer</div>
         <div class="table-scroll"><table class="mfg-material-table"><thead><tr><th>Material PN</th><th>Description</th><th>Linked PNs</th><th>Quantity</th><th>Unit</th><th>Required Time</th></tr></thead><tbody>${rows.map(row => `<tr><td class="mono" style="font-weight:600;">${row.code}</td><td>${row.desc}</td><td><div class="mfg-pn-tags">${row.fgpns.map(fgpn => `<span class="mfg-pn-tag">${fgpn}${row.fgpnRequirements?.[fgpn] ? ` · ${Number(row.fgpnRequirements[fgpn]).toLocaleString()}` : ''}</span>`).join('')}</div></td><td class="mono" style="font-weight:600;">${Number(mfgWizard.qtys[row.code] || 0).toLocaleString()}</td><td class="mono">${row.unit}</td><td class="mono">${String(mfgWizard.itemTimes[row.code] || '').replace('T',' ') || '—'}</td></tr>`).join('')}</tbody></table></div>
         <div class="mfg-code-policy"><div class="mfg-code-policy-icon">${icon('history','')}</div><div><strong>Delivery Code</strong><span>Generated after save · Valid 48 hours · Single use</span></div></div>
-        <div class="mfg-gate-row"><span class="mfg-gate-pill ${simulationReady ? '' : 'pending'}">${icon(simulationReady ? 'check' : 'history','')} ${simulationReady ? 'Launch simulation approved' : 'Run launch simulation'}</span><span class="mfg-gate-pill ${minutesReady ? '' : 'pending'}">${icon(minutesReady ? 'check' : 'doc','')} ${minutesReady ? 'Meeting minutes saved' : 'Meeting minutes required'}</span></div>
-        ${simulationReady ? `<div class="mfg-approval-record">${icon('check','')}<span>Approved ${mfgWizard.approval.approvedAt} · ${mfgWizard.approval.approvedBy}</span></div>` : ''}
-        ${!minutesReady ? `<div class="mfg-minutes-panel"><div class="mfg-create-field"><label>Meeting Minutes</label><textarea class="coef-input" placeholder="Enter meeting minutes" oninput="setSimMeetingMinutes(this.value)">${poEsc(simMeetingMinutes)}</textarea></div><div class="mfg-minutes-actions"><button class="btn secondary sm" onclick="saveMeetingMinutes()">Save Minutes</button></div></div>` : ''}
+        <div class="mfg-gate-row"><span class="mfg-gate-pill">${icon('check','')} Feasibility checked</span><span class="mfg-gate-pill ${minutesReady ? '' : 'pending'}">${icon(minutesReady ? 'check' : 'doc','')} ${minutesReady ? 'Meeting minutes attached' : 'Meeting minutes PDF required'}</span></div>
+        <div class="mfg-minutes-panel">
+          <input id="mfgMeetingMinutesFile" type="file" accept=".pdf,application/pdf" class="meeting-file-input" onchange="uploadMfgMeetingMinutes(this)">
+          <div class="meeting-upload ${minutesReady ? 'has-file' : ''}">
+            <div class="meeting-upload-icon">${icon(minutesReady ? 'FileText' : 'upload','')}</div>
+            <div class="meeting-upload-copy"><strong>${minutesReady ? poEsc(simMeetingFileName || 'Meeting minutes.pdf') : 'Attach meeting minutes'}</strong><span>${minutesReady ? 'PDF attached to this delivery instruction.' : 'PDF only · required before generating the delivery code.'}</span></div>
+            <button type="button" class="btn meeting-upload-action" onclick="document.getElementById('mfgMeetingMinutesFile').click()">${minutesReady ? 'Replace PDF' : 'Choose PDF'}</button>
+          </div>
+        </div>
       </div>
-      <div class="mfg-create-actions"><div><button class="btn" onclick="mfgWizardGoStep(3)">Back</button></div><div><button class="btn secondary" onclick="openMfgLaunchSimulation()">${icon('sim','')} ${simulationReady ? 'Review Approved Simulation' : 'Open Simulation'}</button><button class="btn primary" onclick="mfgWizardSaveInstruction()" ${meetingReady ? '' : 'disabled'}>Save Instruction & Generate Code</button></div></div>
+      <div class="mfg-create-actions"><div><button class="btn" onclick="mfgWizardGoStep(2)">Back</button></div><div><button class="btn primary" onclick="mfgWizardSaveInstruction()" ${meetingReady ? '' : 'disabled'}>Save Instruction & Generate Code</button></div></div>
     </div>`;
       }
 
@@ -6950,7 +7153,7 @@
   <div class="stepper">
     ${steps.map((s, i) => `
       <div class="step ${i + 1 < step ? 'done' : i + 1 === step ? 'active' : ''}"><div class="step-circle">${i + 1 < step ? '✓' : i + 1}</div><div class="step-label">${s}</div></div>
-      ${i < 3 ? `<div class="step-line ${i + 1 < step ? 'done' : ''}"></div>` : ''}
+      ${i < steps.length - 1 ? `<div class="step-line ${i + 1 < step ? 'done' : ''}"></div>` : ''}
     `).join('')}
   </div>
   ${body}</div>`;
@@ -8221,3 +8424,4 @@
     restoreWorkspaceSession();
     initSidebarState();
     renderAll();
+    launchApiInit();
