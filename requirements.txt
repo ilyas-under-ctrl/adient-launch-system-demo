@@ -1,1 +1,7 @@
--r backend/requirements.txt
+fastapi>=0.115,<1
+sqlalchemy>=2.0.35,<3
+pydantic>=2.12,<3
+pydantic-settings>=2.12,<3
+passlib>=1.7.4,<2
+itsdangerous>=2.2,<3
+python-multipart>=0.0.9,<1
