@@ -8,7 +8,7 @@ from app.models.user import RecordStatus, RoleCode
 
 class UserCreate(BaseModel):
     full_name: str = Field(min_length=1, max_length=150)
-    username: str = Field(min_length=1, max_length=80)
+    username: str = Field(min_length=3, max_length=80, pattern=r"^[A-Za-z0-9._-]+$")
     password: str = Field(min_length=8, max_length=72)
     role: RoleCode
     email: str | None = Field(default=None, max_length=255)
@@ -18,6 +18,7 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=150)
+    username: str | None = Field(default=None, min_length=3, max_length=80, pattern=r"^[A-Za-z0-9._-]+$")
     role: RoleCode | None = None
     email: str | None = Field(default=None, max_length=255)
     phone: str | None = Field(default=None, max_length=40)

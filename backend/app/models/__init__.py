@@ -1,7 +1,7 @@
 from app.models.base import Base
 from app.models.user import User
 from app.models.admin import LoginEvent, Project, ProjectAssignment, ReferenceEntry
-from app.models.operations import LaunchInstruction, MaterialStock, PurchaseOrder
+from app.models.operations import BomComponent, LaunchInstruction, MaterialStock, PurchaseOrder
 
 # As you add new domains, import each model module here so Alembic's
 # autogenerate can see every table (Alembic only detects models that have
@@ -12,5 +12,5 @@ from app.models.operations import LaunchInstruction, MaterialStock, PurchaseOrde
 
 __all__ = [
     "Base", "User", "LoginEvent", "Project", "ProjectAssignment", "ReferenceEntry",
-    "PurchaseOrder", "MaterialStock", "LaunchInstruction",
+    "PurchaseOrder", "MaterialStock", "BomComponent", "LaunchInstruction",
 ]

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, JSON, String
+from sqlalchemy import DateTime, Float, Integer, JSON, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
@@ -29,6 +29,19 @@ class MaterialStock(TimestampMixin, Base):
     warehouse: Mapped[float] = mapped_column(Float, default=0)
     wip: Mapped[float] = mapped_column(Float, default=0)
     transit: Mapped[float] = mapped_column(Float, default=0)
+
+
+class BomComponent(TimestampMixin, Base):
+    __tablename__ = "operational_bom_components"
+    __table_args__ = (
+        UniqueConstraint("fgpn", "material_code", "version", name="uq_operational_bom_component"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fgpn: Mapped[str] = mapped_column(String(60), index=True)
+    material_code: Mapped[str] = mapped_column(String(60), index=True)
+    usage_qty: Mapped[float] = mapped_column(Float)
+    version: Mapped[int] = mapped_column(Integer, default=1)
 
 
 class LaunchInstruction(TimestampMixin, Base):

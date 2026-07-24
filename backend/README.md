@@ -2,7 +2,8 @@
 
 This FastAPI service reuses the M00 administration foundation from
 `Amine-te/launch_system` and adds only the operational records needed by the
-current Launch Engineer and Warehouse Team Leader UI.
+current Launch Engineer, Launch Manager, Warehouse Team Leader, and System
+Administrator UI.
 
 ## Run locally
 
@@ -17,7 +18,8 @@ Run the UI in a second terminal:
 npm run dev
 ```
 
-The UI proxies `/api` to `http://127.0.0.1:8000`. SQLite data is created at
+The browser API client calls `http://127.0.0.1:8000` during local development.
+SQLite data is created at
 `backend/launch_system_demo.db`; uploaded PDFs are stored under
 `backend/uploads/`.
 
@@ -26,9 +28,12 @@ The UI proxies `/api` to `http://127.0.0.1:8000`. SQLite data is created at
 The current prototype sends `X-Demo-Role` from its role switcher:
 
 - `engineer`: creates launch instructions and validates signed reception.
+- `manager`: reads every project and may change only assigned projects.
 - `wh_lead`: consumes a delivery code, selects the receiver, generates the
   transfer document, and uploads signed reception.
-- `admin`: reads the backend status summary shown in Super Admin.
+- `admin`: reads the backend status summary shown in System Administration.
 
-The imported M00 authentication and administration routes remain available for
-future production wiring. The current UI remains the only frontend.
+System Administration uses `/auth` signed-cookie sessions and `/admin`
+authorization. Operational creation derives material requirements from the
+latest BOM version in the database; client-submitted material quantities are
+not authoritative.

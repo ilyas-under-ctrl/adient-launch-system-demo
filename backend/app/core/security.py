@@ -1,9 +1,10 @@
 from fastapi import Depends, HTTPException, Request, status
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app.database import get_db
-from app.models.user import RoleCode, User
+from app.models.user import RecordStatus, RoleCode, User
 
 # Use pbkdf2_sha256 to avoid dependency issues with the bcrypt C backend
 # and bcrypt's 72-byte input limitation. pbkdf2_sha256 is supported by
@@ -29,11 +30,16 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     `require_role(*roles)` dependency here that wraps this one and checks
     `user.role` against the allowed list.
     """
-    user_id = request.session.get("user_id")
-    if not user_id:
+    raw_user_id = request.session.get("user_id")
+    if not raw_user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    try:
+        user_id = UUID(raw_user_id)
+    except (TypeError, ValueError):
+        request.session.clear()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session invalid")
 
-    user = db.query(User).filter(User.id == user_id, User.status == "ACTIVE").first()
+    user = db.query(User).filter(User.id == user_id, User.status == RecordStatus.ACTIVE).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session invalid")
 
