@@ -72,14 +72,16 @@ export function createApplication() {
     },
     async changeRole(role) {
       store.setRole(role);
-      if (role === "admin") {
-        await context.refreshAdmin();
-        router.go("/admin/users");
-      } else {
-        await context.refreshOperations();
-        router.go(role === "wh_lead" ? "/warehouse" : "/overview");
-      }
+      const destination = role === "admin" ? "/admin/users" : role === "wh_lead" ? "/warehouse" : "/overview";
       renderChrome();
+      router.go(destination);
+      try {
+        if (role === "admin") await context.refreshAdmin();
+        else await context.refreshOperations();
+        await router.refresh();
+      } catch (error) {
+        console.error("Backend data could not be loaded:", error);
+      }
     },
     login(role) {
       return context.changeRole(role);

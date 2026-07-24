@@ -28,6 +28,9 @@ export function createRouter(routes, onRoute) {
     go(path) {
       location.hash = path;
     },
+    refresh() {
+      return resolve();
+    },
   };
 }
 
