@@ -19,23 +19,43 @@
 
   <div class="login-gate" id="loginGate">
     <div class="login-gate-panel">
-      <div class="login-gate-brand">
-        <img src="./adient-brand.webp" alt="Adient">
-        <div><strong>LaunchOps</strong><span>PO Control Center</span></div>
+      <div class="login-gate-intro">
+        <div class="login-gate-brand">
+          <img src="./adient-brand.webp" alt="Adient">
+          <div><strong>LaunchOps</strong><span>PO Control Center</span></div>
+        </div>
+        <span class="login-gate-eyebrow">Manufacturing operations</span>
+        <h1>Welcome back</h1>
+        <p>Sign in to continue, or open a demo workspace for the role you need to review.</p>
       </div>
-      <h1>Sign in</h1>
-      <p>Authentication will be connected later. Use a demo workspace for now.</p>
-      <form onsubmit="event.preventDefault()">
-        <label>Username<input type="text" placeholder="Enter username"></label>
-        <label>Password<input type="password" placeholder="Enter password"></label>
-        <button type="submit" class="btn">Sign in with credentials</button>
-      </form>
-      <div class="login-gate-divider">Demo access</div>
-      <div class="login-gate-roles">
-        <button onclick="enterDemoRole('engineer')"><strong>Launch Engineer</strong><span>Assigned projects, simulations, and launch planning</span></button>
-        <button onclick="enterDemoRole('manager')"><strong>Launch Manager</strong><span>Portfolio visibility and assigned-project launch control</span></button>
-        <button onclick="enterDemoRole('wh_lead')"><strong>Warehouse Team Leader</strong><span>Delivery codes, transfers, and signed reception</span></button>
-        <button onclick="enterDemoRole('admin')"><strong>System Administrator</strong><span>Users, assignments, reference lists, and audit</span></button>
+      <div class="login-gate-content">
+        <section class="login-credentials" aria-labelledby="credentialsTitle">
+          <div class="login-section-heading">
+            <span>Account access</span>
+            <h2 id="credentialsTitle">Sign in with credentials</h2>
+          </div>
+          <form onsubmit="event.preventDefault(); showCredentialNotice()">
+            <label>Username<input type="text" autocomplete="username" placeholder="Enter username"></label>
+            <label>Password<input type="password" autocomplete="current-password" placeholder="Enter password"></label>
+            <button type="submit" class="btn primary">Sign in</button>
+          </form>
+          <p class="login-auth-note" id="loginAuthNote">Credential authentication is not connected in this prototype.</p>
+        </section>
+        <section class="login-demo-access" aria-labelledby="demoAccessTitle">
+          <div class="login-section-heading">
+            <span>Demo access</span>
+            <h2 id="demoAccessTitle">Choose a workspace</h2>
+          </div>
+          <div class="login-gate-roles">
+            <button onclick="enterDemoRole('engineer')"><span class="login-role-mark">LE</span><span class="login-role-copy"><strong>Launch Engineer</strong><span>Assigned projects, simulation, and launch planning</span></span><span class="login-role-arrow">&rarr;</span></button>
+            <button onclick="enterDemoRole('manager')"><span class="login-role-mark">LM</span><span class="login-role-copy"><strong>Launch Manager</strong><span>Portfolio visibility and assigned-project control</span></span><span class="login-role-arrow">&rarr;</span></button>
+            <button onclick="enterDemoRole('plant')"><span class="login-role-mark">PM</span><span class="login-role-copy"><strong>Plant Manager</strong><span>Plant-wide oversight and read-only operations</span></span><span class="login-role-arrow">&rarr;</span></button>
+            <button onclick="enterDemoRole('wh_lead')"><span class="login-role-mark">WT</span><span class="login-role-copy"><strong>Warehouse Team Leader</strong><span>Delivery codes, transfers, and signed reception</span></span><span class="login-role-arrow">&rarr;</span></button>
+            <button onclick="enterDemoRole('wh_staff')"><span class="login-role-mark">WP</span><span class="login-role-copy"><strong>Warehouse Personnel</strong><span>Stock reception and warehouse operations</span></span><span class="login-role-arrow">&rarr;</span></button>
+            <button onclick="enterDemoRole('prod_coord')"><span class="login-role-mark">PC</span><span class="login-role-copy"><strong>Production &amp; Packing Coordinator</strong><span>Production completion and packing workflow</span></span><span class="login-role-arrow">&rarr;</span></button>
+            <button onclick="enterDemoRole('admin')"><span class="login-role-mark">SA</span><span class="login-role-copy"><strong>System Administrator</strong><span>Users, assignments, reference lists, and login audit</span></span><span class="login-role-arrow">&rarr;</span></button>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -51,15 +71,11 @@
       </div>
       <div class="role-switcher">
         <label>Role</label>
-        <select id="roleSelect" onchange="setRole(this.value)">
-          <option value="engineer">Launch Engineer</option>
-          <option value="manager">Launch Manager</option>
-          <option value="plant">Plant Manager</option>
-          <option value="wh_lead">Warehouse Team Leader</option>
-          <option value="wh_staff">Warehouse Personnel</option>
-          <option value="prod_coord">Production &amp; Packing Coordinator</option>
-          <option value="admin">System Administrator</option>
-        </select>
+        <div class="active-role-name" id="activeRoleLabel">Launch Engineer</div>
+        <div class="role-session-actions">
+          <button type="button" onclick="showRoleChooser()">Switch role</button>
+          <button type="button" onclick="signOutDemo()">Sign out</button>
+        </div>
       </div>
       <div class="nav-scroll" id="navScroll"></div>
       <div class="sidebar-footer">
@@ -125,11 +141,48 @@
   </div>
 
   <script>
+    const demoRoleLabels = {
+      engineer: 'Launch Engineer',
+      manager: 'Launch Manager',
+      plant: 'Plant Manager',
+      wh_lead: 'Warehouse Team Leader',
+      wh_staff: 'Warehouse Personnel',
+      prod_coord: 'Production & Packing Coordinator',
+      admin: 'System Administrator'
+    };
+
     function enterDemoRole(role) {
-      document.getElementById('loginGate').remove();
+      sessionStorage.setItem('launchops-demo-role', role);
+      document.getElementById('loginGate').hidden = true;
       document.body.classList.remove('login-gate-open');
+      const label = document.getElementById('activeRoleLabel');
+      if (label) label.textContent = demoRoleLabels[role] || role;
       if (typeof setRole === 'function') setRole(role);
     }
+
+    function showRoleChooser() {
+      sessionStorage.removeItem('launchops-demo-role');
+      document.getElementById('loginGate').hidden = false;
+      document.body.classList.add('login-gate-open');
+      document.getElementById('loginGate').scrollTop = 0;
+    }
+
+    function signOutDemo() {
+      sessionStorage.removeItem('launchops-demo-role');
+      sessionStorage.removeItem('launchOpsWorkspaceSession');
+      showRoleChooser();
+    }
+
+    function showCredentialNotice() {
+      const note = document.getElementById('loginAuthNote');
+      note.textContent = 'Credential sign-in is not active yet. Choose one of the demo workspaces.';
+      note.classList.add('visible');
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+      const role = sessionStorage.getItem('launchops-demo-role');
+      if (role && demoRoleLabels[role]) enterDemoRole(role);
+    });
   </script>
 
 </body>

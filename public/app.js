@@ -6041,17 +6041,100 @@
 
     function pageProfile() {
       const person = ROLE_PERSONA[currentRole];
-      return `<div class="card" style="max-width:420px;">
-    <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
-      <div class="avatar" style="width:48px; height:48px; font-size:16px;">${person.initials}</div>
-      <div><div style="font-weight:700; font-size:15px;">${person.name}</div><div style="font-size:12.5px; color:var(--ink-faint);">${ROLE_LABEL[currentRole]}</div></div>
+      const account = ADMIN_USERS.find(user => user.fullName === person.name);
+      const projects = account?.projects || [];
+      const auditAliases = {
+        engineer: ['A. Rahal','A. Haddad'],
+        manager: ['S. Ait Oubou','S. Amrani'],
+        plant: ['K. Benali'],
+        wh_lead: ['M. El Idrissi'],
+        wh_staff: ['I. Chafai'],
+        prod_coord: ['Y. Mansouri'],
+        admin: ['R. Benali'],
+      };
+      const recentActivity = AUDIT_LOGS
+        .filter(event => (auditAliases[currentRole] || [account?.name]).includes(event.user))
+        .slice(0,5);
+      const accessCopy = currentRole === 'manager'
+        ? 'Portfolio visibility across all projects. Changes are limited to assigned projects.'
+        : currentRole === 'engineer'
+          ? 'Operational access to assigned projects and their launch workflows.'
+          : currentRole === 'admin'
+            ? 'System-wide administration without operational record ownership.'
+            : 'Role-specific operational access for the current workspace.';
+      const allowedActions = Object.entries(PERMISSIONS)
+        .filter(([, rule]) => rule[currentRole] === true || typeof rule[currentRole] === 'string')
+        .slice(0,8)
+        .map(([key]) => key.replace(/([A-Z])/g,' $1').replace(/^./, value => value.toUpperCase()));
+      const activityAction = currentRole === 'admin'
+        ? `<button class="btn sm" onclick="navigate('admin-system-activity')">Open login audit</button>`
+        : can('viewAudit')
+          ? `<button class="btn sm" onclick="navigate('audit-logs')">Open audit</button>`
+          : '';
+      return `<section class="profile-shell">
+    <div class="profile-identity">
+      <div class="profile-avatar">${person.initials}</div>
+      <div class="profile-title">
+        <span class="profile-eyebrow">User profile</span>
+        <h2>${person.name}</h2>
+        <p>${ROLE_LABEL[currentRole]}</p>
+      </div>
+      <div class="profile-actions">
+        <button class="btn" onclick="openModal('Profile editing','Profile editing will be connected to authenticated user accounts.')">${icon('edit','')} Edit profile</button>
+        <button class="btn" onclick="openModal('Password security','Password changes will be enabled when authentication is connected.')">${icon('lock','')} Change password</button>
+        <button class="btn" onclick="signOutDemo()">${icon('close','')} Sign out</button>
+      </div>
     </div>
-    <div style="font-size:13px; color:var(--ink-soft); line-height:2;">
-      <div><strong>Email</strong> — ${person.email}</div>
-      <div><strong>Site</strong> — ${person.site}</div>
-      <div><strong>Role</strong> — ${ROLE_LABEL[currentRole]}</div>
+    <div class="profile-grid">
+      <div class="card profile-section">
+        <div class="profile-section-head">
+          <div><span>Account</span><h3>Contact information</h3></div>
+          ${statusBadge(account?.status || 'Active','success')}
+        </div>
+        <dl class="profile-details">
+          <div><dt>Full name</dt><dd>${person.name}</dd></div>
+          <div><dt>Email</dt><dd>${person.email}</dd></div>
+          <div><dt>Phone</dt><dd>${account?.phone || 'Not provided'}</dd></div>
+          <div><dt>Department / Site</dt><dd>${person.site}</dd></div>
+          <div><dt>Username</dt><dd class="mono">${account ? `@${account.username}` : 'Demo account'}</dd></div>
+          <div><dt>Authentication</dt><dd>${account?.auth || 'Demo role access'}</dd></div>
+        </dl>
+      </div>
+      <div class="card profile-section">
+        <div class="profile-section-head">
+          <div><span>Access</span><h3>Role and scope</h3></div>
+          ${statusBadge(ROLE_LABEL[currentRole],'info')}
+        </div>
+        <p class="profile-scope-copy">${accessCopy}</p>
+        <div class="profile-projects">
+          <span>Assigned projects</span>
+          <div>${projects.length ? projects.map(project => `<button onclick="openProject('${project}')">${project}</button>`).join('') : '<small>No project-specific assignment</small>'}</div>
+        </div>
+        <div class="profile-permissions">
+          <span>Key permissions</span>
+          <div>${allowedActions.map(action => `<span>${icon('check','')} ${action}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div class="card profile-section">
+        <div class="profile-section-head"><div><span>Security</span><h3>Session and account status</h3></div></div>
+        <dl class="profile-details compact">
+          <div><dt>Account status</dt><dd>${account?.status || 'Active'}</dd></div>
+          <div><dt>Security state</dt><dd>${account?.locked ? 'Locked' : 'Unlocked'}</dd></div>
+          <div><dt>Last login</dt><dd class="mono">${account?.lastLogin || 'Current demo session'}</dd></div>
+          <div><dt>Failed attempts</dt><dd>${account?.failedAttempts || 0} of 5</dd></div>
+          <div><dt>Session</dt><dd>Active in this browser</dd></div>
+          <div><dt>Password reset</dt><dd>${account?.passwordResetRequired ? 'Required' : 'Not required'}</dd></div>
+        </dl>
+      </div>
+      <div class="card profile-section">
+        <div class="profile-section-head">
+          <div><span>Activity</span><h3>Recent actions</h3></div>
+          ${activityAction}
+        </div>
+        <div class="profile-activity">${recentActivity.length ? recentActivity.map(event => `<div><span class="profile-activity-icon">${icon('history','')}</span><p><strong>${event.action}</strong><small>${event.module} / ${event.entity}</small></p><time>${event.date}</time></div>`).join('') : '<div class="profile-no-activity">No recent actions recorded for this account.</div>'}</div>
+      </div>
     </div>
-  </div>`;
+  </section>`;
     }
 
     function pageLogin() {
